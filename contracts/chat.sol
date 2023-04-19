@@ -2,7 +2,13 @@
 pragma solidity ^0.8.0;
 
 contract Chat {
-    function addTwo(uint a, uint b) public pure returns (uint) {
-        return a + b;
+    uint value;
+
+    function increase(uint a) public {
+        value += a;
+    }
+
+    function getValue() public view returns (uint) {
+        return value;
     }
 }
