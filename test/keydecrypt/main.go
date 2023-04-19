@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	keyFile := "../data/keystore/UTC--2023-04-18T12-49-23.162529799Z--d542be4551d114a7a2b544bafb7a9feba8784e69"
+	keyFile := "data/keystore/UTC--2023-04-18T12-49-23.162529799Z--d542be4551d114a7a2b544bafb7a9feba8784e69"
 	password := "123"
 
 	// 读取 keystore 文件
