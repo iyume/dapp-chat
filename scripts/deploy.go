@@ -15,7 +15,7 @@ import (
 
 const chainID = 12345
 const ipc_path = "data/geth.ipc"
-const keyfile = `data/keystore/UTC--2023-04-18T12-37-51.842961176Z--8cedb7c6af8a7781ec89bb84900768de99c8235b`
+const keyfile = `data/keystore/UTC--2023-04-18T12-49-23.162529799Z--d542be4551d114a7a2b544bafb7a9feba8784e69`
 const passphrase = "123"
 
 func main() {
@@ -31,10 +31,11 @@ func main() {
 	auth, err := bind.NewTransactorWithChainID(
 		strings.NewReader(string(keyfilebuf)), passphrase, big.NewInt(chainID),
 	)
-	// NOTE: transaction for deploying cost zero gas
 	if err != nil {
 		log.Fatalf("Failed to create authorized transactor: %v", err)
 	}
+	// NOTE: transaction for deploying cost zero gas
+	auth.GasPrice = big.NewInt(0)
 	address, tx, _, err := chatABI.DeployChat(auth, conn)
 	if err != nil {
 		log.Fatalf("Failed to deploy contract: %v", err)

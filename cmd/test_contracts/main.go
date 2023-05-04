@@ -15,9 +15,10 @@ import (
 )
 
 const ipc_path = "data/geth.ipc"
-const keyfile = `data/keystore/UTC--2023-04-18T12-37-51.842961176Z--8cedb7c6af8a7781ec89bb84900768de99c8235b`
+const keyfile = `data/keystore/UTC--2023-04-18T12-49-23.162529799Z--d542be4551d114a7a2b544bafb7a9feba8784e69`
 const passphrase = "123"
 const chainID = 12345
+const contractAddress = "0x7b17f3af835b9ef46e1bad6f0d3f8352882f672f"
 
 func main() {
 	conn, err := ethclient.Dial(ipc_path)
@@ -25,7 +26,7 @@ func main() {
 		log.Fatalf("Failed to connect to the Ethereum client: %v", err)
 	}
 	instance, err := chatABI.NewChat(common.HexToAddress(
-		"0x695483a11e353632ed20780a33755e2f64a0361e"), conn)
+		contractAddress), conn)
 	if err != nil {
 		log.Fatalf("Failed to create contract instance: %v", err)
 	}
@@ -39,6 +40,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create authorized transactor: %v", err)
 	}
+	auth.GasPrice = big.NewInt(0)
 	session := chatABI.ChatSession{Contract: instance,
 		CallOpts: bind.CallOpts{Pending: true}, TransactOpts: *auth}
 	res, err := session.GetValue()
