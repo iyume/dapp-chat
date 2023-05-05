@@ -35,7 +35,7 @@ func main() {
 		log.Fatalf("Failed to create authorized transactor: %v", err)
 	}
 	// NOTE: transaction for deploying cost zero gas
-	auth.GasPrice = big.NewInt(0)
+	auth.GasPrice = big.NewInt(1)
 	address, tx, _, err := chatABI.DeployChat(auth, conn)
 	if err != nil {
 		log.Fatalf("Failed to deploy contract: %v", err)

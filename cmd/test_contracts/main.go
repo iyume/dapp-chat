@@ -40,7 +40,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create authorized transactor: %v", err)
 	}
-	auth.GasPrice = big.NewInt(0)
+	auth.GasPrice = big.NewInt(1)
 	session := chatABI.ChatSession{Contract: instance,
 		CallOpts: bind.CallOpts{Pending: true}, TransactOpts: *auth}
 	res, err := session.GetValue()
