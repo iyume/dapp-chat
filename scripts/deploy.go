@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	chatABI "github.com/iyume/go-blockchain-chat/go-chat"
+	chatABI "github.com/iyume/dapp-chat/go-dapp-chat"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/ethclient"

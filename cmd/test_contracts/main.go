@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 
-	chatABI "github.com/iyume/go-blockchain-chat/go-chat"
+	chatABI "github.com/iyume/dapp-chat/go-dapp-chat"
 )
 
 const ipc_path = "data/geth.ipc"

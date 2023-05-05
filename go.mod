@@ -1,4 +1,4 @@
-module github.com/iyume/go-blockchain-chat
+module github.com/iyume/dapp-chat
 
 go 1.20
 
