@@ -1,1 +1,1 @@
-# go-blockchain-chat
+# dapp-chat
