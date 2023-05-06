@@ -17,6 +17,7 @@ const chainID = 12345
 const ipc_path = "data/geth.ipc"
 const keyfile = `data/keystore/UTC--2023-04-18T12-49-23.162529799Z--d542be4551d114a7a2b544bafb7a9feba8784e69`
 const passphrase = "123"
+const deployTimeout = 5
 
 func main() {
 	// Create an IPC based RPC connection to a remote node and an authorized transactor
@@ -34,12 +35,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create authorized transactor: %v", err)
 	}
-	// NOTE: transaction for deploying cost zero gas
+	// NOTE: transaction require at least one gasprice (miner limits)
 	auth.GasPrice = big.NewInt(1)
 	address, tx, _, err := chatABI.DeployChat(auth, conn)
 	if err != nil {
-		log.Fatalf("Failed to deploy contract: %v", err)
+		log.Fatalln("Failed to deploy contract:", err)
 	}
+	// Use format because `address.String()` has mixed case
 	fmt.Printf("Contract pending address: 0x%x\n", address)
-	fmt.Printf("Transaction waiting to be verified: 0x%x\n\n", tx.Hash())
+	fmt.Println("Transaction waiting to be verified:", tx.Hash())
 }
