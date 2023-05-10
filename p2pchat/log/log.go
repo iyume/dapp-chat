@@ -1,4 +1,4 @@
-package main
+package log
 
 import (
 	"bytes"
@@ -31,7 +31,9 @@ func init() {
 	logger.SetHandler(handler)
 }
 
-func GetLogger() log.Logger { return logger }
+// NOTE: This logger is currently unavailable because it is highly-customization
+// for go-ethereum.
+// func GetLogger() log.Logger { return logger }
 
 func SetLogLevel(level log.Lvl) {
 	handler := logger.GetHandler().(*log.GlogHandler)
