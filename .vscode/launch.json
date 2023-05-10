@@ -11,6 +11,15 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "Launch package",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${fileDirname}",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Launch project",
             "type": "go",
             "request": "launch",

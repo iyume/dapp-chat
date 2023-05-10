@@ -66,8 +66,8 @@ func testImportRawKey(ks *keystore.KeyStore, keyfile string, passphrase string) 
 }
 
 // Proposed at https://github.com/ethereum/go-ethereum/pull/27224
-func ImportRawKey(ks *keystore.KeyStore, keyfile, passphrase string) (accounts.Account, error) {
-	priv, err := crypto.LoadECDSA(keyfile)
+func ImportRawKey(ks *keystore.KeyStore, hexkey, passphrase string) (accounts.Account, error) {
+	priv, err := crypto.HexToECDSA(hexkey)
 	if err != nil {
 		return accounts.Account{}, err
 	}
@@ -93,5 +93,9 @@ func main() {
 	fmt.Println("List all accounts:", ks.Accounts())
 	testFindByAddress(ks, common.HexToAddress("6110a1d3e14fbdd5556f77edb2785c72d5f50edb"))
 	testImportRawKey(ks, "cmd/test_keystore/key.txt", "123")
-	testKeyStoreImportRawKey(ks, "cmd/test_keystore/key.txt", "123")
+	hexkey, err := os.ReadFile("cmd/test_keystore/key.txt")
+	if err != nil {
+		log.Fatalln("Error read key:", err)
+	}
+	testKeyStoreImportRawKey(ks, string(hexkey), "123")
 }
