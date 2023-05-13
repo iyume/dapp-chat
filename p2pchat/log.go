@@ -40,5 +40,13 @@ func SetLogLevel(level log.Lvl) {
 	handler.Verbosity(level)
 }
 
+var LvlFromString = func(s string) log.Lvl {
+	lvl, err := log.LvlFromString(s)
+	if err != nil {
+		panic("no specified log level")
+	}
+	return lvl
+}
+
 // NOTE: geth log ctx is key,value mapping for logging
 // log.Error("Could not search for pattern", "pattern", pattern, "contract", contracts[types[i]], "err", err)
