@@ -18,11 +18,14 @@ const maxBodySize = 1 * 1024 * 1024
 
 // TODO: refactor config
 
-var backend = &api.Backend{}
+var key = getGenerateKey()
+
+var backend = api.NewBackend(key)
 
 // p2pserver must be started before http server
 var p2pserver = &p2p.Server{
 	Config: p2p.Config{
+		PrivateKey: key,
 		MaxPeers:   50,
 		NAT:        nil, // equals to 'none'
 		Protocols:  api.MakeProtocols(backend),
@@ -66,7 +69,6 @@ func init() {
 
 func initP2PConfig() {
 	// for test
-	p2pserver.Config.PrivateKey = getGenerateKey()
 	netrestrict, err := netutil.ParseNetlist("127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16")
 	if err != nil {
 		log.Fatalln(err)

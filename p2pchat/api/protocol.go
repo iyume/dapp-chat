@@ -1,8 +1,6 @@
 package api
 
 import (
-	"encoding/json"
-
 	"github.com/ethereum/go-ethereum/p2p"
 )
 
@@ -21,14 +19,6 @@ const (
 	ChannelMessageEventMsg = 0x02
 )
 
-// Make Protocol from event
-
-// Send sends event
-func Send(event any) ([]byte, error) {
-	jsonbytes, err := json.Marshal(event)
-	return jsonbytes, err
-}
-
 // MakeProtocols always returns latest protocol and drop support for old protocol version.
 func MakeProtocols(backend *Backend) []p2p.Protocol {
 	protocols := make([]p2p.Protocol, 1)
@@ -37,8 +27,10 @@ func MakeProtocols(backend *Backend) []p2p.Protocol {
 		Version: ProtocolVersion,
 		Length:  protocolLength,
 		Run: func(peer *p2p.Peer, rw p2p.MsgReadWriter) error {
-			go backend.Run(peer, rw)
-			return Handle(peer, rw)
+			p := NewPeer(peer, rw, ProtocolVersion)
+			defer p.Close()
+			backend.AddPeer(p)
+			return Handle(backend, peer, rw)
 		},
 		// msg, err := rw.ReadMsg()
 		// if err != nil {

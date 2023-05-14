@@ -1,13 +1,17 @@
 package api
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"log"
 
 	"github.com/ethereum/go-ethereum/p2p"
 )
 
-func Handle(peer *p2p.Peer, rw p2p.MsgReadWriter) error {
+// TODO: add friends database, fields: local_user_id, node_id, pubkey
+
+func Handle(backend *Backend, peer *p2p.Peer, rw p2p.MsgReadWriter) error {
 	// TODO: should check protocol-level error
 	for {
 		msg, err := rw.ReadMsg()
@@ -17,31 +21,39 @@ func Handle(peer *p2p.Peer, rw p2p.MsgReadWriter) error {
 		if msg.Size > maxMessageSize {
 			return fmt.Errorf("message too large: %v > %v", msg.Size, maxMessageSize)
 		}
-		if err := handleMessage(peer, &msg); err != nil {
+		if err := handleMessage(backend, peer, &msg); err != nil {
 			return err
 		}
 		msg.Discard()
 	}
 }
 
-var handlerRegistry = map[uint64]func(*p2p.Msg) error{
+var handlerRegistry = map[uint64]func(*p2p.Peer, *p2p.Msg) error{
 	StatusMsg:              nil,
 	P2PMessageEventMsg:     handleP2PMessage,
 	ChannelMessageEventMsg: nil,
 }
 
 // handle p2p message, save validated event into database
-func handleMessage(peer *p2p.Peer, msg *p2p.Msg) error {
-	pubkey := peer.Node().Pubkey()
-	_ = pubkey
+func handleMessage(backend *Backend, peer *p2p.Peer, msg *p2p.Msg) error {
+	// check message is sent to me
+	idslice := make([]byte, 32)
+	if _, err := io.ReadFull(msg.Payload, idslice); err != nil {
+		return err
+	}
+	id := [32]byte(idslice)
+	if [32]byte(id) != peer.ID() {
+		return errors.New("discard msg not sent to me")
+	}
 	// decrypt message and dispatch
+	// ecies.Encrypt()
 	if handler := handlerRegistry[msg.Code]; handler != nil {
-		return handler(msg)
+		return handler(peer, msg)
 	}
 	return nil
 }
 
-func handleP2PMessage(msg *p2p.Msg) error {
+func handleP2PMessage(peer *p2p.Peer, msg *p2p.Msg) error {
 	message := P2PMessageEvent{}
 	if err := msg.Decode(&message); err != nil {
 		return err
