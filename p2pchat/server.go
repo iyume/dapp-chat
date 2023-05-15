@@ -55,7 +55,7 @@ func readBody(r *http.Request) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(bytes) == maxBodySize {
+	if len(bytes) >= maxBodySize {
 		return nil, errors.New("exceeded max body size")
 	}
 	r.Body.Close()
@@ -88,20 +88,19 @@ func initServer() {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"status":"OK"}`))
 	})
-	mux.HandleFunc("/empty", func(w http.ResponseWriter, r *http.Request) {})
 	mux.HandleFunc("/send_p2p_message", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "GET" && r.Method != "POST" {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		data := map[string]interface{}{}
-		if r.Method == "GET" {
-			params := flatQueryParams(r)
-			for key, value := range params {
-				data[key] = value
-			}
-		} else if r.Method == "POST" {
+		params := flatQueryParams(r)
+		data := QuerySendP2PMessage{
+			Nickname: params["nickname"],
+			NodeID:   params["node_id"],
+			Message:  params["message"],
+		}
+		if r.Method == "POST" {
 			bytes, err := readBody(r)
 			if err != nil {
 				log.Println(err)
@@ -114,21 +113,26 @@ func initServer() {
 				return
 			}
 		}
-		// convert to Message if string
-		messagestr, ok := data["message"].(string)
-		if ok {
-			message := api.Message{
-				api.Segment{Type: "text", Data: api.TextSegment{Text: messagestr}},
-			}
-			data["message"] = message
+		if data.HasZeroField() {
+			http.Error(w, "parameter not enough", http.StatusBadRequest)
+			return
 		}
-		// Construct Event and propagate it to p2p
-
+		// convert to Message if string
+		var message api.Message
+		switch messageVal := data.Message.(type) {
+		case string:
+			message = api.Message{
+				api.Segment{Type: "text", Data: api.TextSegment{Text: messageVal}},
+			}
+		case api.Message:
+			message = messageVal
+		}
+		if data.NodeID == "" {
+			// we couldn't use Nickname without database
+			http.Error(w, "node ID must be provided", http.StatusBadRequest)
+			return
+		}
+		backend.SendP2PMessage(data.NodeID, message)
+		w.Write([]byte(`{"message_id":0}`))
 	})
-}
-
-type Getter map[string]interface{}
-
-func (m Getter) GetInt(key string) int {
-	return m[key].(int)
 }

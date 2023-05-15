@@ -14,7 +14,7 @@ const (
 // 基础事件类型
 type Event struct {
 	// ID   string    `json:"id"` // fake field
-	Time time.Time `json:"time"`
+	Time string `json:"time"` // the rlp encoding cannot handle time properly
 
 	Type string `json:"type"`
 
@@ -36,14 +36,16 @@ type P2PMessageEvent struct {
 	NodeID string `json:"node_id"`
 }
 
-func MakeP2PMessageEvent(time time.Time, message Message, node_id string) P2PMessageEvent {
+func MakeP2PMessageEvent(time_ time.Time, message Message, nodeID string) P2PMessageEvent {
 	return P2PMessageEvent{
-		MessageEvent: MessageEvent{Event: Event{
-			Time:       time,
-			Type:       "message",
-			DetailType: "p2p",
-		}},
-		NodeID: node_id,
+		MessageEvent: MessageEvent{
+			Event: Event{
+				Time:       time_.Format(time.RFC3339Nano),
+				Type:       "message",
+				DetailType: "p2p",
+			},
+			Message: message},
+		NodeID: nodeID,
 	}
 }
 

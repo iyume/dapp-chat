@@ -40,10 +40,7 @@ func main() {
 		log.Fatalln(err)
 	}
 	defer p2pserver.Stop()
-	// go func() {
-	// 	time.Sleep(2 * time.Second)
-	// 	log.Println(*p2pserver.PeersInfo()[0])
-	// }()
+	go backend.Run()
 	// srv.LocalNode().Node() ensure localnode exists. srv.Self() will create it.
 	log.Println("Started P2P networking at", p2pserver.LocalNode().Node().URLv4())
 	log.Println("Node ID:", p2pserver.LocalNode().ID())
