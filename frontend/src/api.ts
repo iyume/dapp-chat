@@ -1,6 +1,6 @@
 import axios from "axios";
 import config from "@/config";
-import { type IFriendList, type IMessageList } from "./interfaces";
+import type { IFriendListElem, IMessageListElem } from "./interfaces";
 
 if (!config.p2pApiUrl || !config.p2pToken) {
   console.warn("p2p api url or token is not provided.");
@@ -22,12 +22,12 @@ export const api = {
     p2pApiRequest.post("/send_p2p_message", { user_id, message });
   },
   async getP2PMessageList(user_id: string) {
-    return p2pApiRequest.get<IMessageList>("/get_p2p_msg_list", {
+    return p2pApiRequest.get<IMessageListElem[]>("/get_p2p_msg_list", {
       params: { user_id },
     });
   },
   async getFriendList() {
-    return p2pApiRequest.get<IFriendList>("/get_friend_list");
+    return p2pApiRequest.get<IFriendListElem[]>("/get_friend_list");
   },
   async addFriend(node_id: string, remark: string) {
     p2pApiRequest.put("/add_friend", { node_id, remark });
