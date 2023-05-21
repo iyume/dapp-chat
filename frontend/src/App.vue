@@ -1,23 +1,36 @@
-<script lang="ts" setup>
-import Navbar from "./components/Navbar.vue";
-import Sidebar from "./components/Sidebar.vue";
-import { currentPage } from "./store";
-</script>
-
 <template>
-  <!-- <div class="bg-red-500">
-    <h1 class="text-3xl font-bold underline">Hello world!</h1>
-    <button class="btn">Hello daisyUI</button>
-  </div> -->
-  <Navbar drawer-id="my-drawer-main" />
-  <Sidebar drawer-id="my-drawer-main">
-    <template #content>
-      <template v-if="currentPage == 'main'">
-        <p>this is main page</p>
-      </template>
-      <template v-if="currentPage == 'p2p'">
-        <p>this is p2p page</p>
-      </template>
-    </template>
-  </Sidebar>
+  <div class="container mx-auto h-screen">
+    <router-view />
+  </div>
 </template>
+
+<script setup lang="ts">
+import { useDataStore } from './stores/data'
+import { faker } from '@faker-js/faker'
+
+const datastore = useDataStore()
+
+for (let i = 1; i <= Math.round(Math.random() * 30); ++i) {
+  datastore.friends.push({
+    node_id: faker.string.uuid(),
+    id: i,
+    remark: faker.person.fullName(),
+    avatar: faker.image.urlLoremFlickr({ width: 64, height: 64 })
+  })
+}
+
+for (let i = 1; i <= Math.round(Math.random() * 100); ++i) {
+  datastore.messages.push({
+    friend_id: Math.round(Math.random() * datastore.friends.length),
+    direction: Math.random() < 0.5 ? 1 : 2,
+    message_id: i,
+    message: faker.lorem.words({ min: 1, max: 20 }),
+    time: faker.date.recent().toString()
+  })
+}
+
+datastore.my_info = {
+  name: faker.person.fullName(),
+  avatar: faker.image.urlLoremFlickr({ width: 64, height: 64 })
+}
+</script>
