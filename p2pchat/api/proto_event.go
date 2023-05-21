@@ -5,7 +5,7 @@ import (
 )
 
 // 此实现参照 Onebot V12 和 https://github.com/botuniverse/go-libonebot
-// 去除了很多冗余字段如 user_id, self_id, message_id
+// 所有 ID 相关的数据都不会在发送时构造，而是在接收时构造
 
 const (
 	EventTypeMessage = "message" // 消息事件
@@ -13,13 +13,9 @@ const (
 
 // 基础事件类型
 type Event struct {
-	// ID   string    `json:"id"` // fake field
-	Time string `json:"time"` // the rlp encoding cannot handle time properly
-
-	Type string `json:"type"`
-
-	// p2p or channel
-	DetailType string `json:"detail_type"`
+	Time       string `json:"time"`
+	Type       string `json:"type"`        // message or other ob12 type
+	DetailType string `json:"detail_type"` // p2p or channel
 }
 
 func (e *Event) Name() string {
@@ -33,7 +29,7 @@ type MessageEvent struct {
 
 type P2PMessageEvent struct {
 	MessageEvent
-	NodeID string `json:"node_id"`
+	NodeID string `json:"node_id"` // Sender Node ID
 }
 
 func MakeP2PMessageEvent(time_ time.Time, message Message, nodeID string) P2PMessageEvent {
@@ -51,4 +47,6 @@ func MakeP2PMessageEvent(time_ time.Time, message Message, nodeID string) P2PMes
 
 type ChannelMessageEvent struct {
 	MessageEvent
+	ChannelID string `json:"channel_id"` // Channel ID
+	NodeID    string `json:"node_id"`    // Sender Node ID
 }

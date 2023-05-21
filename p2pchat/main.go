@@ -51,6 +51,6 @@ func main() {
 	}
 	log.Println("Started http server at", "http://"+listener.Addr().String())
 	if err := server.Serve(listener); err != nil {
-		log.Println(err)
+		log.Fatalln(err)
 	}
 }
