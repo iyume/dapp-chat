@@ -29,20 +29,9 @@ func MakeProtocols(backend *Backend) []p2p.Protocol {
 		Run: func(peer *p2p.Peer, rw p2p.MsgReadWriter) error {
 			p := NewPeer(peer, rw, ProtocolVersion)
 			defer p.Close()
-			backend.AddPeer(p)
+			backend.addPeer(p)
 			return Handle(backend, peer, rw)
 		},
-		// msg, err := rw.ReadMsg()
-		// if err != nil {
-		// 	return err
-		// }
-		// msgbytes, err := ioutil.ReadAll(msg.Payload)
-		// msg.Discard()
-		// log.Printf("%s\n", msgbytes)
-		// return nil
-		// err := rw.WriteMsg(p2p.Msg{Code: 1, Size: 5, Payload: strings.NewReader("msggggg")})
-		// return err
-		// },
 	}
 	return protocols
 }

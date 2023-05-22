@@ -5,30 +5,84 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
 	"github.com/ethereum/go-ethereum/p2p"
+	"github.com/ethereum/go-ethereum/p2p/enode"
+	"github.com/ethereum/go-ethereum/p2p/nat"
+	"github.com/ethereum/go-ethereum/p2p/netutil"
 )
 
 // Backend defines events trigger
 type Backend struct {
 	key                     *ecdsa.PrivateKey
-	peers                   []*Peer
+	server                  *p2p.Server
+	peers                   []*Peer // peer/rw matrix
 	running                 bool
 	emitP2PMessageEvent     chan *P2PMessageEvent
 	emitChannelMessageEvent chan *ChannelMessageEvent
+
+	stop <-chan int // TODO: interrupt notify and disconnect all peers
 }
 
-func NewBackend(key *ecdsa.PrivateKey) *Backend {
-	return &Backend{
-		key:                     key,
+type BackendConfig struct {
+	Key      *ecdsa.PrivateKey
+	MaxPeers int
+	NAT      nat.Interface // p2p.nat.Parse
+	Host     string
+	Port     int
+	Locally  bool // restrict local request
+
+	BootstrapNodes []*enode.Node // enode.MustParse
+
+	// for test
+	NetRestrict *netutil.Netlist // p2p.netutil.ParseNetlist
+}
+
+var localCIDRs = func() *netutil.Netlist {
+	netlist, err := netutil.ParseNetlist("127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16")
+	if err != nil {
+		log.Panicln(err)
+	}
+	return netlist
+}()
+
+// start p2p server and backend
+func StartBackend(config BackendConfig, stop <-chan int) {
+	var backend = new(Backend)
+	if config.Locally {
+		config.NetRestrict = localCIDRs
+	}
+	server := &p2p.Server{
+		Config: p2p.Config{
+			PrivateKey:     config.Key,
+			MaxPeers:       config.MaxPeers,
+			NAT:            config.NAT,
+			Protocols:      MakeProtocols(backend),
+			ListenAddr:     fmt.Sprintf("%s:%d", config.Host, config.Port),
+			NetRestrict:    config.NetRestrict,
+			BootstrapNodes: config.BootstrapNodes,
+		},
+	}
+	*backend = Backend{
+		key:                     config.Key,
+		server:                  server,
 		emitP2PMessageEvent:     make(chan *P2PMessageEvent),
 		emitChannelMessageEvent: make(chan *ChannelMessageEvent),
+		stop:                    stop,
 	}
+	if err := server.Start(); err != nil {
+		log.Panicln(err)
+	}
+	// srv.LocalNode().Node() ensure localnode exists. srv.Self() will create it.
+	log.Println("Started P2P networking at", server.LocalNode().Node().URLv4())
+	log.Println("Node ID:", server.LocalNode().ID())
+	go backend.Run()
 }
 
-func (backend *Backend) AddPeer(p *Peer) {
+func (backend *Backend) addPeer(p *Peer) {
 	backend.peers = append(backend.peers, p)
 }
 
@@ -57,11 +111,16 @@ func stringToIDV4(s string) ([32]byte, error) {
 	return nodeID, nil
 }
 
-// main loop of Backend to be goroutine and call send event methods
-func (b *Backend) Run() error {
+// main loop of Backend to be goroutine
+func (b *Backend) Run() {
 	b.running = true
 	for {
 		select {
+		case <-b.stop:
+			for _, p := range b.server.Peers() {
+				p.Disconnect(p2p.DiscRequested)
+			}
+			return
 		case p2pevent := <-b.emitP2PMessageEvent:
 			nodeID, err := stringToIDV4(p2pevent.NodeID)
 			if err != nil {
@@ -98,6 +157,6 @@ func (b *Backend) SendP2PMessage(nodeID string, message Message) error {
 
 func (b *Backend) SendChannelMessage() {
 	if !b.running {
-		panic("p2p server not started")
+		log.Panicln("p2p server not started")
 	}
 }

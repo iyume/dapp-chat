@@ -11,7 +11,7 @@ type TextSegment struct {
 	Text string `json:"text"`
 }
 
-func (msg Message) ExtractPlainText() string {
+func (msg Message) ExtractPlaintext() string {
 	var text string
 	for _, segment := range msg {
 		if segment.Type == "Text" {
@@ -20,4 +20,8 @@ func (msg Message) ExtractPlainText() string {
 		}
 	}
 	return text
+}
+
+func PlaintextToMessage(text string) Message {
+	return Message{Segment{Type: "text", Data: TextSegment{Text: text}}}
 }
