@@ -1,8 +1,8 @@
-<script lang="ts" setup>
+<script setup lang="ts">
+import { currentPage } from "./store";
+import P2PView from "./views/P2PView.vue";
 import Navbar from "./components/Navbar.vue";
 import Sidebar from "./components/Sidebar.vue";
-import { currentPage } from "./store";
-import P2pView from "./views/P2pView.vue";
 </script>
 
 <template>
@@ -17,7 +17,7 @@ import P2pView from "./views/P2pView.vue";
         <p>this is main page</p>
       </template>
       <template v-if="currentPage == 'p2p'">
-        <p2p-view />
+        <P2PView />
       </template>
     </template>
   </Sidebar>

@@ -11,7 +11,7 @@
           >
             <div class="avatar">
               <div class="w-8 rounded">
-                <img :src="avatar" />
+                <img alt="empty" />
               </div>
             </div>
             <span class="ml15">{{ fr.remark }}</span>
@@ -66,7 +66,6 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { faker } from "@faker-js/faker";
 import { api } from "@/api";
 import type { IFriend } from "@/interfaces";
 
@@ -82,7 +81,6 @@ export type MessageItemType = {
 
 const friends = ref<IFriend[] | undefined>();
 const message_list = ref<MessageItemType[] | undefined>();
-const avatar = faker.image.urlLoremFlickr({ width: 64, height: 64 });
 
 const chat_with = ref<string | undefined>();
 const text = ref<string>("");
@@ -108,7 +106,7 @@ function select_chat(node_id: string) {
         seenTime: "not implemented",
         direction,
         name,
-        avatar,
+        undefined,
       } as MessageItemType;
     });
   });

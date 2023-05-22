@@ -24,10 +24,8 @@
   </div>
 </template>
 
-<script lang="ts">
-export default {
-  props: {
-    drawerId: { type: String, required: true },
-  },
-};
+<script setup lang="ts">
+defineProps({
+  drawerId: { type: String, required: true },
+});
 </script>

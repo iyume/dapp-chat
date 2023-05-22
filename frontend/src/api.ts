@@ -1,14 +1,9 @@
 import axios from "axios";
 import config from "@/config";
-import type { IFriend, IP2pMessage } from "./interfaces";
-import { use_mock } from "./api-mock";
+import type { IFriend, IP2PMessage } from "./interfaces";
 
 if (!config.p2pApiUrl || !config.p2pToken) {
   console.warn("p2p api url or token is not provided.");
-}
-
-if (import.meta.env.VITE_API_MOCK) {
-  use_mock(axios);
 }
 
 // p2p backend should be pre-configured
@@ -27,7 +22,7 @@ export const api = {
     p2pApiRequest.post("/send_p2p_message", { user_id, message });
   },
   async getP2PMessageList(node_id: string) {
-    return p2pApiRequest.get<IP2pMessage[]>("/get_p2p_msg_list", {
+    return p2pApiRequest.get<IP2PMessage[]>("/get_p2p_msg_list", {
       params: { node_id },
     });
   },

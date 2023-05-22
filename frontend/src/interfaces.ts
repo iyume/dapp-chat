@@ -3,7 +3,7 @@ export interface IFriend {
   node_id: string;
 }
 
-export interface IP2pMessage {
+export interface IP2PMessage {
   time: string;
   node_id: string;
   message_id: number;

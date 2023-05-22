@@ -3,9 +3,9 @@
     <input :id="drawerId" type="checkbox" class="drawer-toggle" />
     <div class="drawer-content">
       <!-- Page content here -->
-      <slot name="content">{{
-        console.error("main content must be provided")
-      }}</slot>
+      <slot name="content">
+        {{ console.error("main content must be provided") }}
+      </slot>
     </div>
     <div class="drawer-side">
       <label :for="drawerId" class="drawer-overlay"></label>
@@ -23,17 +23,13 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { currentPage } from "@/store";
 
-export default {
-  data() {
-    return {
-      currentPage,
-    };
-  },
-  props: {
-    drawerId: { type: String, required: true },
-  },
-};
+defineProps({
+  drawerId: { type: String, required: true },
+});
+defineSlots<{
+  content: (props: {}) => {};
+}>();
 </script>
