@@ -1,11 +1,11 @@
-export interface IFriendListElem {
-  id: number;
+export interface IFriend {
   remark: string;
   node_id: string;
 }
 
-export interface IMessageListElem {
-  sender_id: number;
+export interface IP2pMessage {
   time: string;
+  node_id: string;
   message_id: number;
+  message: string;
 }
