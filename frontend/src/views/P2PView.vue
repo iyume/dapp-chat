@@ -5,17 +5,12 @@
     >
       <ul class="w-full menu menu-vertical">
         <li v-for="fr in friends" :key="fr.node_id">
-          <div
+          <FriendListItem
             @click="select_chat(fr.node_id)"
-            :class="chat_with == fr.node_id ? 'active' : ''"
-          >
-            <div class="avatar">
-              <div class="w-8 rounded">
-                <img alt="empty" />
-              </div>
-            </div>
-            <span class="ml15">{{ fr.remark }}</span>
-          </div>
+            :active="chat_with == fr.node_id"
+            :name="fr.remark"
+            :avatar="undefined"
+          />
         </li>
       </ul>
     </div>
@@ -23,23 +18,7 @@
       <div v-if="chat_with != null" class="h-full w-full">
         <div class="h-3/4 w-full overflow-y-auto">
           <div v-for="item in message_list" :key="item.message_id">
-            <div
-              :class="`chat ${item.direction == 1 ? 'chat-start' : 'chat-end'}`"
-            >
-              <div class="chat-image avatar">
-                <div class="w-10 rounded-full">
-                  <img :src="item.avatar" />
-                </div>
-              </div>
-              <div class="chat-header">
-                {{ item.name }}
-                <time class="text-xs opacity-50">{{ item.sendTime }}</time>
-              </div>
-              <div class="chat-bubble">{{ item.content }}</div>
-              <div class="opacity-50 chat-footer" v-if="item.direction == 2">
-                {{ item.seenTime }}
-              </div>
-            </div>
+            <MessageItem v-bind="item" />
           </div>
         </div>
         <div class="container h-1/4 w-full form-control">
@@ -68,16 +47,9 @@
 import { ref } from "vue";
 import { api } from "@/api";
 import type { IFriend } from "@/interfaces";
-
-export type MessageItemType = {
-  message_id: number;
-  content: string;
-  sendTime: string;
-  seenTime?: string;
-  direction: 1 | 2; // 1: received, 2: sent
-  name?: string;
-  avatar?: string;
-};
+import FriendListItem from "@/components/FriendListItem.vue";
+import MessageItem from "@/components/MessageItem.vue";
+import type { MessageItemType } from "@/components/MessageItem.vue";
 
 const friends = ref<IFriend[] | undefined>();
 const message_list = ref<MessageItemType[] | undefined>();
@@ -106,7 +78,6 @@ function select_chat(node_id: string) {
         seenTime: "not implemented",
         direction,
         name,
-        undefined,
       } as MessageItemType;
     });
   });
