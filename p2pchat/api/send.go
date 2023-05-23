@@ -5,7 +5,6 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"log"
 	"time"
 
@@ -29,16 +28,21 @@ type Backend struct {
 
 type BackendConfig struct {
 	Key      *ecdsa.PrivateKey
-	MaxPeers int
+	MaxPeers int           // default to 50
 	NAT      nat.Interface // p2p.nat.Parse
-	Host     string
-	Port     int
-	Locally  bool // restrict local request
+	Address  string        // default to "127.0.0.1:0"
+	Locally  bool          // restrict local request
 
 	BootstrapNodes []*enode.Node // enode.MustParse
 
 	// for test
 	NetRestrict *netutil.Netlist // p2p.netutil.ParseNetlist
+}
+
+var DefaultBackendConfig = BackendConfig{
+	MaxPeers: 50,
+	NAT:      nat.Any(),
+	Address:  "127.0.0.1:0",
 }
 
 var localCIDRs = func() *netutil.Netlist {
@@ -49,8 +53,7 @@ var localCIDRs = func() *netutil.Netlist {
 	return netlist
 }()
 
-// start p2p server and backend
-func StartBackend(config BackendConfig, stop <-chan int) {
+func NewBackend(config BackendConfig, stop <-chan int) *Backend {
 	var backend = new(Backend)
 	if config.Locally {
 		config.NetRestrict = localCIDRs
@@ -61,7 +64,7 @@ func StartBackend(config BackendConfig, stop <-chan int) {
 			MaxPeers:       config.MaxPeers,
 			NAT:            config.NAT,
 			Protocols:      MakeProtocols(backend),
-			ListenAddr:     fmt.Sprintf("%s:%d", config.Host, config.Port),
+			ListenAddr:     config.Address,
 			NetRestrict:    config.NetRestrict,
 			BootstrapNodes: config.BootstrapNodes,
 		},
@@ -73,22 +76,27 @@ func StartBackend(config BackendConfig, stop <-chan int) {
 		emitChannelMessageEvent: make(chan *ChannelMessageEvent),
 		stop:                    stop,
 	}
-	if err := server.Start(); err != nil {
+	return backend
+}
+
+// Start p2p server and backend in goroutine
+func (b *Backend) Start() {
+	if err := b.server.Start(); err != nil {
 		log.Panicln(err)
 	}
 	// srv.LocalNode().Node() ensure localnode exists. srv.Self() will create it.
-	log.Println("Started P2P networking at", server.LocalNode().Node().URLv4())
-	log.Println("Node ID:", server.LocalNode().ID())
-	go backend.Run()
+	log.Println("Started P2P networking at", b.server.LocalNode().Node().URLv4())
+	log.Println("Node ID:", b.server.LocalNode().ID().String())
+	go b.run()
 }
 
-func (backend *Backend) addPeer(p *Peer) {
-	backend.peers = append(backend.peers, p)
+func (b *Backend) addPeer(p *Peer) {
+	b.peers = append(b.peers, p)
 }
 
-func (backend *Backend) findPeer(nodeID [32]byte) *Peer {
+func (b *Backend) findPeer(nodeID [32]byte) *Peer {
 	// we could check protocol version in further
-	for _, p := range backend.peers {
+	for _, p := range b.peers {
 		pID := p.p.ID()
 		if bytes.Equal(pID[:], nodeID[:]) && !p.closed {
 			return p
@@ -112,7 +120,7 @@ func stringToIDV4(s string) ([32]byte, error) {
 }
 
 // main loop of Backend to be goroutine
-func (b *Backend) Run() {
+func (b *Backend) run() {
 	b.running = true
 	for {
 		select {

@@ -1,56 +1,18 @@
 package main
 
 import (
-	"crypto/ecdsa"
-	"log"
-	"net"
-	"os"
-
-	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/iyume/dapp-chat/p2pchat/api"
+	"github.com/iyume/dapp-chat/p2pchat/server"
 )
-
-// for test
-var bootnode = ""
-
-func getPrivateKeyJson(file string) *ecdsa.PrivateKey {
-	keyjson, err := os.ReadFile(file)
-	if err != nil {
-		log.Fatalln("Error load keyfile:", err)
-	}
-	key, err := keystore.DecryptKey(keyjson, "123")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	return key.PrivateKey
-}
-
-func getGenerateKey() *ecdsa.PrivateKey {
-	priv, err := crypto.GenerateKey()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	return priv
-}
 
 func main() {
 	SetLogLevel(LvlFromString("debug"))
 
-	if err := p2pserver.Start(); err != nil {
-		log.Fatalln(err)
-	}
-	defer p2pserver.Stop()
-	go backend.Run()
-	// srv.LocalNode().Node() ensure localnode exists. srv.Self() will create it.
-	log.Println("Started P2P networking at", p2pserver.LocalNode().Node().URLv4())
-	log.Println("Node ID:", p2pserver.LocalNode().ID())
-
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.Println("Started http server at", "http://"+listener.Addr().String())
-	if err := server.Serve(listener); err != nil {
-		log.Fatalln(err)
-	}
+	bconfig := api.DefaultBackendConfig
+	bconfig.Key, _ = crypto.GenerateKey()
+	backend := api.NewBackend(bconfig, make(chan int))
+	backend.Start()
+	config := server.HTTPConfig{Address: ":0"}
+	server.RunHTTPServer(backend, config)
 }
