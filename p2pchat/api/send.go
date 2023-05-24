@@ -79,6 +79,14 @@ func NewBackend(config BackendConfig, stop <-chan int) *Backend {
 	return backend
 }
 
+func (b Backend) NodeID() [32]byte {
+	ln := b.server.LocalNode()
+	if ln == nil {
+		log.Panicln("backend is not started")
+	}
+	return ln.ID()
+}
+
 // Start p2p server and backend in goroutine
 func (b *Backend) Start() {
 	if err := b.server.Start(); err != nil {

@@ -38,6 +38,8 @@ type httpServer struct {
 
 type Getter interface {
 	Get(string) any
+
+	// GetString returns empty string if not string type
 	GetString(string) string
 }
 
@@ -85,7 +87,8 @@ func RunHTTPServer(backend *api.Backend, config HTTPConfig) {
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-	log.Println("Started http server at", "http://"+listener.Addr().String())
+	log.Println("Started http server at", "http://"+listener.Addr().String(),
+		"with token", token)
 	if err := srv.Serve(listener); err != nil {
 		log.Panicln(err)
 	}
