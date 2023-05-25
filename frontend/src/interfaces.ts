@@ -1,3 +1,8 @@
+export interface IResp<T> {
+  retcode: number;
+  data: T;
+}
+
 export interface IFriend {
   remark: string;
   node_id: string;
