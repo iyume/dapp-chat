@@ -6,16 +6,27 @@ import (
 	"strings"
 )
 
-func newTokenHandler(handler http.Handler, token string) http.Handler {
-	return tokenHandler{token: token, next: handler}
+func newAccessHandler(handler http.Handler, token string) http.Handler {
+	return accessHandler{token: token, next: handler}
 }
 
-type tokenHandler struct {
+type accessHandler struct {
 	token string
 	next  http.Handler
 }
 
-func (h tokenHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h accessHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// CORS headers
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Authorization, *")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET, POST")
+
+	// CORS preflight handle
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
 	token := r.Header.Get("Authorization")
 	if token == "" {
 		http.Error(w, "missing Authorization header", http.StatusUnauthorized)
@@ -35,10 +46,9 @@ func (h tokenHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func NewHTTPStack(srv http.Handler, token string) http.Handler {
-	// TODO: CORS handler
 	if token == "" {
 		log.Panicln("no token to start server")
 	}
-	wrapped := newTokenHandler(srv, token)
+	wrapped := newAccessHandler(srv, token)
 	return wrapped
 }
