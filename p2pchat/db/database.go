@@ -45,7 +45,7 @@ func newPersistentDB(path string) *leveldb.DB {
 
 // Register database
 func Init(path string, localNodeID [32]byte) error {
-	db = &Database{DB: newPersistentDB(path)}
+	*db = Database{DB: newPersistentDB(path)}
 	exists, err := db.Has(localKey, nil)
 	if err != nil {
 		return err
