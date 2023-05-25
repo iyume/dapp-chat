@@ -32,7 +32,7 @@ type Database struct {
 	inited bool
 }
 
-var db *Database
+var db = new(Database)
 var ErrDBNotInit = errors.New("database not initialized")
 
 func newPersistentDB(path string) *leveldb.DB {
