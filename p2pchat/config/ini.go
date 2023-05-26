@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/iyume/dapp-chat/p2pchat/api"
 	"github.com/iyume/dapp-chat/p2pchat/server"
 	"gopkg.in/ini.v1"
@@ -17,8 +18,15 @@ import (
 // netrestrict: p2p.netutil.ParseNetlist
 
 type Config struct {
+	DataDir string
 	Http    server.HTTPConfig
 	Backend api.BackendConfig
+}
+
+var DefaultConfig = Config{
+	DataDir: "chatdata",
+	Http:    server.DefaultHTTPConfig,
+	Backend: api.DefaultBackendConfig,
 }
 
 func LoadINIConfig(file string) Config {
@@ -26,14 +34,31 @@ func LoadINIConfig(file string) Config {
 	if err != nil {
 		panic(err)
 	}
-	inihttp := inifile.Section("http")
-	inibackend := inifile.Section("backend")
-	httpcfg := server.DefaultHTTPConfig
-	backendcfg := api.DefaultBackendConfig
+	cfg := DefaultConfig
+	cfghttp := cfg.Http
+	cfgbackend := cfg.Backend
+
+	// Main config (no section)
+	inimain := inifile.Section("")
+	cfg.DataDir = inimain.Key("data_dir").MustString(cfg.DataDir)
 	// Http config
-	httpcfg.Address = inihttp.Key("address").MustString(httpcfg.Address)
-	httpcfg.Token = inihttp.Key("token").MustString(httpcfg.Token)
+	if inihttp := inifile.Section("http"); inifile.HasSection("http") {
+		cfghttp.Address = inihttp.Key("address").MustString(cfghttp.Address)
+		cfghttp.Token = inihttp.Key("token").MustString(cfghttp.Token)
+	}
 	// Backend config
-	backendcfg.Key = MustHexToECDSA(inibackend.Key("private_key").String())
-	return Config{Http: httpcfg, Backend: backendcfg}
+	if inibackend := inifile.Section("backend"); inifile.HasSection("backend") {
+		cfgbackend.Key = MustHexToECDSA(inibackend.Key("private_key").String())
+		bootnodes_slice := inibackend.Key("bootnodes").Strings(",")
+		bootnodes := []*enode.Node{}
+		for _, val := range bootnodes_slice {
+			bootnodes = append(bootnodes, enode.MustParse(val))
+		}
+		cfgbackend.BootstrapNodes = bootnodes
+		cfgbackend.Address = inibackend.Key("address").MustString(cfgbackend.Address)
+	}
+
+	cfg.Http = cfghttp
+	cfg.Backend = cfgbackend
+	return cfg
 }

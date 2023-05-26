@@ -19,27 +19,16 @@ var app = &cli.App{
 			Name:     "config",
 			Required: true,
 		},
-		&cli.StringFlag{
-			Name: "data",
-		},
 	},
 	Action: func(ctx *cli.Context) error {
 		cfgfile := ctx.String("config")
 		if _, err := os.Stat(cfgfile); err != nil {
 			log.Panicln(err)
 		}
-		datadir := ctx.String("data")
-		if datadir != "" {
-			if _, err := os.Stat(datadir); err != nil {
-				log.Panicln(err)
-			}
-		} else {
-			datadir = "chatdata"
-		}
 		config := config.LoadINIConfig(cfgfile)
 		backend := api.NewBackend(config.Backend, make(chan int))
 		backend.Start()
-		if err := db.Init(datadir, backend.NodeID()); err != nil {
+		if err := db.Init(config.DataDir, backend.NodeID()); err != nil {
 			log.Panicln(err)
 		}
 		server.RunHTTPServer(backend, config.Http)

@@ -41,6 +41,7 @@ type BackendConfig struct {
 
 var DefaultBackendConfig = BackendConfig{
 	MaxPeers: 50,
+	Locally:  true,
 	NAT:      nat.Any(),
 	Address:  "127.0.0.1:0",
 }
