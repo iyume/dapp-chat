@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/hex"
 
+	"github.com/iyume/dapp-chat/p2pchat/api"
 	"github.com/iyume/dapp-chat/p2pchat/db"
 	"github.com/iyume/dapp-chat/p2pchat/utils"
 )
@@ -22,8 +23,11 @@ type Caller interface {
 
 // may implemented by codegen
 
-var actions = map[string]func(p Getter) (map[string]any, int){
-	"get_friend_list": func(p Getter) (map[string]any, int) {
+var actions = map[string]func(b *api.Backend, p Getter) (map[string]any, int){
+	"get_peers_info": func(b *api.Backend, p Getter) (map[string]any, int) {
+		return OK(b.PeersInfo()), 0
+	},
+	"get_friend_list": func(b *api.Backend, p Getter) (map[string]any, int) {
 		resp := []map[string]any{}
 		for nodeID, info := range *db.GetFriends() {
 			resp = append(resp, map[string]any{
@@ -33,7 +37,7 @@ var actions = map[string]func(p Getter) (map[string]any, int){
 		}
 		return OK(resp), 0
 	},
-	"add_friend": func(p Getter) (map[string]any, int) {
+	"add_friend": func(b *api.Backend, p Getter) (map[string]any, int) {
 		nodeIDstr := p.GetString("node_id")
 		remark := p.GetString("remark")
 		if nodeIDstr == "" || remark == "" {
@@ -46,7 +50,7 @@ var actions = map[string]func(p Getter) (map[string]any, int){
 		db.AddFriend(nodeID, remark)
 		return OK(nil), 0
 	},
-	"delete_friend": func(p Getter) (map[string]any, int) {
+	"delete_friend": func(b *api.Backend, p Getter) (map[string]any, int) {
 		nodeIDstr := p.GetString("node_id")
 		if nodeIDstr == "" {
 			return nil, CallArgumentNotEnough
@@ -62,7 +66,7 @@ var actions = map[string]func(p Getter) (map[string]any, int){
 }
 
 type caller struct {
-	// backend *api.Backend  // backend needed?
+	backend *api.Backend
 }
 
 func (c caller) Call(action string, p Getter) (map[string]any, int) {
@@ -70,11 +74,11 @@ func (c caller) Call(action string, p Getter) (map[string]any, int) {
 	if !ok {
 		return nil, CallActionNotFound
 	}
-	return handler(p)
+	return handler(c.backend, p)
 }
 
-func NewCaller() Caller {
-	return caller{}
+func NewCaller(b *api.Backend) Caller {
+	return caller{backend: b}
 }
 
 func OK(data any) map[string]any {

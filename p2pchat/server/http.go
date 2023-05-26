@@ -80,7 +80,7 @@ func RunHTTPServer(backend *api.Backend, config HTTPConfig) {
 	var handler http.Handler = httpServer{
 		HTTPConfig: config,
 		backend:    backend,
-		caller:     NewCaller(),
+		caller:     NewCaller(backend),
 	}
 	token := config.Token
 	if token == "" {

@@ -165,3 +165,23 @@ func (b *Backend) SendChannelMessage() {
 		log.Panicln("p2p server not started")
 	}
 }
+
+// Backend APIs
+
+type peersInfo struct {
+	NodeID  [32]byte `json:"node_id"`
+	Active  bool     `json:"active"`
+	Version uint     `json:"version"`
+}
+
+func (b *Backend) PeersInfo() *[]peersInfo {
+	infos := []peersInfo{}
+	for _, p := range b.peers {
+		infos = append(infos, peersInfo{
+			NodeID:  p.p.ID(),
+			Active:  !p.closed,
+			Version: p.version,
+		})
+	}
+	return &infos
+}
