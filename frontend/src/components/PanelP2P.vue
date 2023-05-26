@@ -40,7 +40,7 @@
 
 <script setup lang="ts">
 import Messager from "@/components/Messager.vue";
-import SvgSmallPlus from "@/components/SvgSmallPlus.vue";
+import SvgSmallPlus from "@/components/svgs/SvgSmallPlus.vue";
 import { friendList } from "@/store";
 
 const firstChar = (remark: string) => (remark ? remark[0].toUpperCase() : "?");
