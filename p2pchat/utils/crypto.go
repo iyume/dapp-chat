@@ -4,9 +4,9 @@ import (
 	"crypto/rand"
 )
 
-func GenerateToken() [16]byte {
-	hex := [16]byte{}
-	_, err := rand.Reader.Read(hex[:])
+func GenerateToken(len int) []byte {
+	hex := make([]byte, len)
+	_, err := rand.Reader.Read(hex)
 	if err != nil {
 		panic(err)
 	}

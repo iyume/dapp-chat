@@ -1,5 +1,11 @@
 package config
 
+import (
+	"github.com/iyume/dapp-chat/p2pchat/api"
+	"github.com/iyume/dapp-chat/p2pchat/server"
+	"gopkg.in/ini.v1"
+)
+
 // --mine --datadir nodes/signer1 --networkid 12345 --port 30304 --authrpc.port 8552 \
 // --unlock 6110a1D3E14FBdD5556F77Edb2785C72D5F50EDb \
 // --miner.etherbase 6110a1D3E14FBdD5556F77Edb2785C72D5F50EDb \
@@ -10,5 +16,24 @@ package config
 // nat: p2p.nat.Parse
 // netrestrict: p2p.netutil.ParseNetlist
 
-func LoadINIConfig() {
+type Config struct {
+	Http    server.HTTPConfig
+	Backend api.BackendConfig
+}
+
+func LoadINIConfig(file string) Config {
+	inifile, err := ini.InsensitiveLoad(file)
+	if err != nil {
+		panic(err)
+	}
+	inihttp := inifile.Section("http")
+	inibackend := inifile.Section("backend")
+	httpcfg := server.DefaultHTTPConfig
+	backendcfg := api.DefaultBackendConfig
+	// Http config
+	httpcfg.Address = inihttp.Key("address").MustString(httpcfg.Address)
+	httpcfg.Token = inihttp.Key("token").MustString(httpcfg.Token)
+	// Backend config
+	backendcfg.Key = MustHexToECDSA(inibackend.Key("private_key").String())
+	return Config{Http: httpcfg, Backend: backendcfg}
 }

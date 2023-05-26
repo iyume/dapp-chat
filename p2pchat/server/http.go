@@ -2,9 +2,9 @@ package server
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"net"
@@ -24,10 +24,15 @@ type HTTPConfig struct {
 	// 16-byte random hex string
 	Token string
 
-	// `hostname:port`. Default to "127.0.0.1:8080"
+	// Must be hostname:port
 	Address string
 
 	// TODO: add reverse http event poster
+}
+
+var DefaultHTTPConfig = HTTPConfig{
+	Token:   "",
+	Address: "127.0.0.1:8080",
 }
 
 type httpServer struct {
@@ -79,7 +84,7 @@ func RunHTTPServer(backend *api.Backend, config HTTPConfig) {
 	}
 	token := config.Token
 	if token == "" {
-		token = fmt.Sprintf("%x", utils.GenerateToken())
+		token = hex.EncodeToString(utils.GenerateToken(16))
 	}
 	handler = NewHTTPStack(handler, token)
 	srv := &http.Server{

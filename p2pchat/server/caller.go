@@ -1,7 +1,7 @@
 package server
 
 import (
-	"fmt"
+	"encoding/hex"
 
 	"github.com/iyume/dapp-chat/p2pchat/db"
 	"github.com/iyume/dapp-chat/p2pchat/utils"
@@ -27,7 +27,7 @@ var actions = map[string]func(p Getter) (map[string]any, int){
 		resp := []map[string]any{}
 		for nodeID, info := range *db.GetFriends() {
 			resp = append(resp, map[string]any{
-				"node_id": fmt.Sprintf("%x", nodeID),
+				"node_id": hex.EncodeToString(nodeID[:]),
 				"remark":  info.Remark,
 			})
 		}
