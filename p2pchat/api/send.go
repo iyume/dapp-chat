@@ -170,16 +170,16 @@ func (b *Backend) SendChannelMessage() {
 // Backend APIs
 
 type peersInfo struct {
-	NodeID  [32]byte `json:"node_id"`
-	Active  bool     `json:"active"`
-	Version uint     `json:"version"`
+	NodeID  string `json:"node_id"`
+	Active  bool   `json:"active"`
+	Version uint   `json:"version"`
 }
 
 func (b *Backend) PeersInfo() *[]peersInfo {
 	infos := []peersInfo{}
 	for _, p := range b.peers {
 		infos = append(infos, peersInfo{
-			NodeID:  p.p.ID(),
+			NodeID:  p.p.ID().String(),
 			Active:  !p.closed,
 			Version: p.version,
 		})
