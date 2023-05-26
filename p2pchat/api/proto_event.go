@@ -13,7 +13,7 @@ const (
 
 // 基础事件类型
 type Event struct {
-	Time       string `json:"time"`
+	Time       string `json:"time"`        // RFC3339Nano format
 	Type       string `json:"type"`        // message or other ob12 type
 	DetailType string `json:"detail_type"` // p2p or channel
 }

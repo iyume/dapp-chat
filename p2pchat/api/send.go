@@ -3,7 +3,6 @@ package api
 import (
 	"bytes"
 	"crypto/ecdsa"
-	"encoding/hex"
 	"errors"
 	"log"
 	"time"
@@ -12,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/p2p/nat"
 	"github.com/ethereum/go-ethereum/p2p/netutil"
+	"github.com/iyume/dapp-chat/p2pchat/utils"
 )
 
 // Backend defines events trigger
@@ -105,26 +105,15 @@ func (b *Backend) addPeer(p *Peer) {
 func (b *Backend) findPeer(nodeID [32]byte) *Peer {
 	// we could check protocol version in further
 	for _, p := range b.peers {
-		pID := p.p.ID()
-		if bytes.Equal(pID[:], nodeID[:]) && !p.closed {
+		if bytes.Equal(p.p.ID().Bytes(), nodeID[:]) && !p.closed {
 			return p
 		}
 	}
 	return nil
 }
 
-func truncateNodeID(nodeID [32]byte) string {
+func truncateBytes(nodeID [32]byte) string {
 	return string(nodeID[:8]) + "..."
-}
-
-func stringToIDV4(s string) ([32]byte, error) {
-	nodeIDHex, err := hex.DecodeString(s)
-	if err != nil {
-		return [32]byte{}, err
-	}
-	nodeID := [32]byte{}
-	copy(nodeID[:], nodeIDHex)
-	return nodeID, nil
 }
 
 // main loop of Backend to be goroutine
@@ -138,7 +127,7 @@ func (b *Backend) run() {
 			}
 			return
 		case p2pevent := <-b.emitP2PMessageEvent:
-			nodeID, err := stringToIDV4(p2pevent.NodeID)
+			nodeID, err := utils.ParseHexNodeID(p2pevent.NodeID)
 			if err != nil {
 				log.Println("node ID is not valid hex string")
 				continue
@@ -146,7 +135,7 @@ func (b *Backend) run() {
 			peer := b.findPeer(nodeID)
 			if peer == nil {
 				log.Printf(
-					"p2p connection to %s is not established\n", truncateNodeID(nodeID))
+					"p2p connection to %s is not established\n", truncateBytes(nodeID))
 				continue
 			}
 			// the peer connection is secure enough, but we could use ECIES/ECDH

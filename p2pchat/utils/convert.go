@@ -20,9 +20,14 @@ func ConvUint64(val any) (uint64, error) {
 	}
 }
 
+// Parse hex string trimed "0x" to node ID
 func ParseNodeID(in string) ([32]byte, error) {
-	var id [32]byte
-	in = strings.TrimPrefix(in, "0x")
+	return ParseHexNodeID(strings.TrimPrefix(in, "0x"))
+}
+
+// Parse hex string without trim "0x" to node ID
+func ParseHexNodeID(in string) ([32]byte, error) {
+	id := [32]byte{}
 	if len(in) != 64 {
 		return id, errors.New("want hex string of length 64")
 	}
