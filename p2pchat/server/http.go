@@ -72,10 +72,10 @@ func (p paramsGetter) GetString(key string) string {
 }
 
 // main loop of http server
-func RunHTTPServer(backend *api.Backend, config HTTPConfig) {
+func StartHTTPServer(backend *api.Backend, config HTTPConfig) (*http.Server, net.Listener, error) {
 	listener, err := net.Listen("tcp", config.Address)
 	if err != nil {
-		log.Panicln(err)
+		return nil, nil, err
 	}
 	var handler http.Handler = httpServer{
 		HTTPConfig: config,
@@ -94,9 +94,8 @@ func RunHTTPServer(backend *api.Backend, config HTTPConfig) {
 	}
 	log.Println("Started http server at", "http://"+listener.Addr().String(),
 		"with token", token)
-	if err := srv.Serve(listener); err != nil {
-		log.Panicln(err)
-	}
+	go srv.Serve(listener)
+	return srv, listener, nil
 }
 
 func (srv httpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {

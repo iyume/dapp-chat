@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum/p2p"
@@ -19,11 +20,11 @@ type Backend struct {
 	key                     *ecdsa.PrivateKey
 	server                  *p2p.Server
 	peers                   []*Peer // peer/rw matrix
-	running                 bool
 	emitP2PMessageEvent     chan *P2PMessageEvent
 	emitChannelMessageEvent chan *ChannelMessageEvent
 
-	stop <-chan int // TODO: interrupt notify and disconnect all peers
+	wg   sync.WaitGroup
+	stop chan struct{}
 }
 
 type BackendConfig struct {
@@ -54,7 +55,7 @@ var localCIDRs = func() *netutil.Netlist {
 	return netlist
 }()
 
-func NewBackend(config BackendConfig, stop <-chan int) *Backend {
+func NewBackend(config BackendConfig) *Backend {
 	var backend = new(Backend)
 	if config.Locally {
 		config.NetRestrict = localCIDRs
@@ -75,12 +76,12 @@ func NewBackend(config BackendConfig, stop <-chan int) *Backend {
 		server:                  server,
 		emitP2PMessageEvent:     make(chan *P2PMessageEvent),
 		emitChannelMessageEvent: make(chan *ChannelMessageEvent),
-		stop:                    stop,
+		stop:                    make(chan struct{}),
 	}
 	return backend
 }
 
-func (b Backend) NodeID() [32]byte {
+func (b *Backend) NodeID() [32]byte {
 	ln := b.server.LocalNode()
 	if ln == nil {
 		log.Panicln("backend is not started")
@@ -96,7 +97,13 @@ func (b *Backend) Start() {
 	// srv.LocalNode().Node() ensure localnode exists. srv.Self() will create it.
 	log.Println("Started P2P networking at", b.server.LocalNode().Node().URLv4())
 	log.Println("Node ID:", b.server.LocalNode().ID().String())
+	b.wg.Add(1)
 	go b.run()
+}
+
+func (b *Backend) Stop() {
+	close(b.stop)
+	b.wg.Wait()
 }
 
 func (b *Backend) addPeer(p *Peer) {
@@ -119,14 +126,14 @@ func truncateBytes(nodeID [32]byte) string {
 
 // main loop of Backend to be goroutine
 func (b *Backend) run() {
-	b.running = true
+loop:
 	for {
 		select {
 		case <-b.stop:
 			for _, p := range b.server.Peers() {
 				p.Disconnect(p2p.DiscRequested)
 			}
-			return
+			break loop
 		case p2pevent := <-b.emitP2PMessageEvent:
 			nodeID, err := utils.ParseHexNodeID(p2pevent.NodeID)
 			if err != nil {
@@ -146,12 +153,10 @@ func (b *Backend) run() {
 			log.Println("send channel message is not supported")
 		}
 	}
+	b.wg.Done()
 }
 
 func (b *Backend) SendP2PMessage(nodeID string, message Message) error {
-	if !b.running {
-		return errors.New("p2p server not started")
-	}
 	if len(nodeID) != 64 {
 		return errors.New("node ID must be string of length 64")
 	}
@@ -162,9 +167,6 @@ func (b *Backend) SendP2PMessage(nodeID string, message Message) error {
 }
 
 func (b *Backend) SendChannelMessage() {
-	if !b.running {
-		log.Panicln("p2p server not started")
-	}
 }
 
 // Backend APIs
