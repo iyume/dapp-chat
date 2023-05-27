@@ -65,6 +65,15 @@ p3 = start_server(2, cfg3.name)
 ps = (p1, p2, p3)
 
 
+# 下面代码不知道为什么没用，os.kill, terminate, kill 都没用
+# import time, os, signal
+
+# time.sleep(3)
+# p3.terminate()
+# retcode = p3.wait()
+# print("retcode", retcode)
+
+
 try:
     for p in ps:
         p.wait()
@@ -72,7 +81,8 @@ except KeyboardInterrupt:
     for p in ps:
         p.terminate()
     for p in ps:
-        p.wait()
+        if (retcode := p.wait()) and (retcode not in (0, 1)):
+            print(f"{p.args} was not properly closed, retcode {retcode}")
 finally:
     for d in data_dirs:
         shutil.rmtree(d, ignore_errors=True)
