@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/iyume/dapp-chat/p2pchat/api"
+	"github.com/iyume/dapp-chat/p2pchat/types"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
@@ -17,11 +17,11 @@ import (
 // }
 
 type friendInfo struct {
-	Remark string
+	Remark string `json:"remark"`
 }
 
 type p2pSession struct {
-	Messages []api.P2PMessageEvent
+	Events []types.P2PMessageEvent `json:"events"`
 }
 
 // leveldb
@@ -38,7 +38,7 @@ var ErrDBNotInit = errors.New("database not initialized")
 func newPersistentDB(path string) *leveldb.DB {
 	db, err := leveldb.OpenFile(path, nil)
 	if err != nil {
-		log.Fatalln(err)
+		log.Panicln(err)
 	}
 	return db
 }
@@ -67,20 +67,21 @@ func Init(path string, localNodeID [32]byte) error {
 	return nil
 }
 
-func GetFriendIDs() *[][32]byte {
+func GetFriendIDs() [][32]byte {
 	if !db.inited {
 		log.Panicln(ErrDBNotInit)
 	}
-	friends := [][32]byte{}
+	fIDs := [][32]byte{}
 	iter := db.NewIterator(util.BytesPrefix(friendPrefix), nil)
 	defer iter.Release()
 	for iter.Next() {
-		friends = append(friends, [32]byte(iter.Key()[len(friendPrefix):]))
+		fIDs = append(fIDs, [32]byte(iter.Key()[len(friendPrefix):]))
 	}
 	if err := iter.Error(); err != nil {
-		log.Panicln(err)
+		log.Println(err)
+		return nil
 	}
-	return &friends
+	return fIDs
 }
 
 func HasFriend(nodeID [32]byte) bool {
@@ -91,12 +92,13 @@ func HasFriend(nodeID [32]byte) bool {
 	// return slices.Contains(*ids, nodeID)
 	exist, err := db.Has(friendKey(nodeID), nil)
 	if err != nil {
-		log.Panicln(err)
+		log.Println(err)
+		return false
 	}
 	return exist
 }
 
-func GetFriends() *map[[32]byte]friendInfo {
+func GetFriends() map[[32]byte]friendInfo {
 	if !db.inited {
 		log.Panicln(ErrDBNotInit)
 	}
@@ -106,15 +108,17 @@ func GetFriends() *map[[32]byte]friendInfo {
 	for iter.Next() {
 		info := friendInfo{}
 		if err := json.Unmarshal(iter.Value(), &info); err != nil {
-			log.Panicln(errors.Join(err,
+			log.Println(errors.Join(err,
 				fmt.Errorf("cannot unmarshal value on key '%s'", iter.Key())))
+			return nil
 		}
 		friends[[32]byte(iter.Key()[len(friendPrefix):])] = info
 	}
 	if err := iter.Error(); err != nil {
-		log.Panicln(err)
+		log.Println(err)
+		return nil
 	}
-	return &friends
+	return friends
 }
 
 // Add new friend with associated info
@@ -124,11 +128,13 @@ func AddFriend(nodeID [32]byte, remark string) {
 	}
 	data, err := json.Marshal(friendInfo{Remark: remark})
 	if err != nil {
-		log.Panicln(err)
+		log.Println(err)
+		return
 	}
 	// shall we check friend existence?
 	if err := db.Put(friendKey(nodeID), data, nil); err != nil {
-		log.Panicln(err)
+		log.Println(err)
+		return
 	}
 }
 
@@ -137,20 +143,56 @@ func DeleteFriend(nodeID [32]byte) {
 		log.Panicln(ErrDBNotInit)
 	}
 	if err := db.Delete(friendKey(nodeID), nil); err != nil {
-		log.Panicln(err)
+		log.Println(err)
+		return
 	}
 }
 
-func GetP2PSession() (*p2pSession, error) {
+// This returns non-nil value
+func GetP2PSession(sessionID [32]byte) *p2pSession {
 	if !db.inited {
 		log.Panicln(ErrDBNotInit)
 	}
-	return nil, nil
+	data, err := db.Get(p2pSessionKey(sessionID), nil)
+	if err != nil {
+		if !errors.Is(err, leveldb.ErrNotFound) {
+			log.Println(err)
+		}
+		return &p2pSession{}
+	}
+	session := new(p2pSession)
+	if err := json.Unmarshal(data, session); err != nil {
+		log.Println(err)
+		return &p2pSession{}
+	}
+	return session
 }
 
-func AddP2PMessage(sessionID [32]byte, message api.P2PMessageEvent) error {
+func PutP2PSession(sessionID [32]byte, session *p2pSession) {
 	if !db.inited {
 		log.Panicln(ErrDBNotInit)
 	}
-	return nil
+	data, err := json.Marshal(session)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	if err := db.Put(p2pSessionKey(sessionID), data, nil); err != nil {
+		log.Println(err)
+		return
+	}
+}
+
+// Add appends p2p message event into session, creates session if not exists.
+func AddP2PMessageEvent(sessionID [32]byte, event types.P2PMessageEvent) {
+	if !db.inited {
+		log.Panicln(ErrDBNotInit)
+	}
+	if event.UserID == "" {
+		log.Println("missing UserID field")
+		return
+	}
+	session := GetP2PSession(sessionID)
+	session.Events = append(session.Events, event)
+	PutP2PSession(sessionID, session)
 }

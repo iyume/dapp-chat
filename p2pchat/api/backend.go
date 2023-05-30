@@ -3,28 +3,25 @@ package api
 import (
 	"bytes"
 	"crypto/ecdsa"
+	"encoding/hex"
 	"errors"
+	"fmt"
 	"log"
-	"sync"
-	"time"
 
 	"github.com/ethereum/go-ethereum/p2p"
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/p2p/nat"
 	"github.com/ethereum/go-ethereum/p2p/netutil"
+	"github.com/iyume/dapp-chat/p2pchat/db"
+	"github.com/iyume/dapp-chat/p2pchat/types"
 	"github.com/iyume/dapp-chat/p2pchat/utils"
 )
 
 // Backend defines events trigger
 type Backend struct {
-	key                     *ecdsa.PrivateKey
-	server                  *p2p.Server
-	peers                   []*Peer // peer/rw matrix
-	emitP2PMessageEvent     chan *P2PMessageEvent
-	emitChannelMessageEvent chan *ChannelMessageEvent
-
-	wg   sync.WaitGroup
-	stop chan struct{}
+	key    *ecdsa.PrivateKey
+	server *p2p.Server
+	peers  []*Peer // peer/rw matrix
 }
 
 type BackendConfig struct {
@@ -72,21 +69,29 @@ func NewBackend(config BackendConfig) *Backend {
 		},
 	}
 	*backend = Backend{
-		key:                     config.Key,
-		server:                  server,
-		emitP2PMessageEvent:     make(chan *P2PMessageEvent),
-		emitChannelMessageEvent: make(chan *ChannelMessageEvent),
-		stop:                    make(chan struct{}),
+		key:    config.Key,
+		server: server,
 	}
 	return backend
 }
 
-func (b *Backend) NodeID() [32]byte {
+func (b *Backend) NodeID() enode.ID {
 	ln := b.server.LocalNode()
 	if ln == nil {
 		log.Panicln("backend is not started")
 	}
 	return ln.ID()
+}
+
+// SessionID returns p2p session ID for database, empty bytes if nodeID equals to self ID
+func (b *Backend) SessionID(nodeID [32]byte) [32]byte {
+	return utils.GetSessionID(b.NodeID(), nodeID)
+}
+
+func (b *Backend) Stop() {
+	for _, p := range b.server.Peers() {
+		p.Disconnect(p2p.DiscQuitting)
+	}
 }
 
 // Start p2p server and backend in goroutine
@@ -97,13 +102,6 @@ func (b *Backend) Start() {
 	// srv.LocalNode().Node() ensure localnode exists. srv.Self() will create it.
 	log.Println("Started P2P networking at", b.server.LocalNode().Node().URLv4())
 	log.Println("Node ID:", b.server.LocalNode().ID().String())
-	b.wg.Add(1)
-	go b.run()
-}
-
-func (b *Backend) Stop() {
-	close(b.stop)
-	b.wg.Wait()
 }
 
 func (b *Backend) addPeer(p *Peer) {
@@ -111,7 +109,7 @@ func (b *Backend) addPeer(p *Peer) {
 }
 
 func (b *Backend) findPeer(nodeID [32]byte) *Peer {
-	// we could check protocol version in further
+	// we could check protocol version in further (p.RunningCap)
 	for _, p := range b.peers {
 		if bytes.Equal(p.p.ID().Bytes(), nodeID[:]) && !p.closed {
 			return p
@@ -121,52 +119,32 @@ func (b *Backend) findPeer(nodeID [32]byte) *Peer {
 }
 
 func truncateBytes(nodeID [32]byte) string {
-	return string(nodeID[:8]) + "..."
+	return hex.EncodeToString(nodeID[:4]) + "..."
 }
 
-// main loop of Backend to be goroutine
-func (b *Backend) run() {
-loop:
-	for {
-		select {
-		case <-b.stop:
-			for _, p := range b.server.Peers() {
-				p.Disconnect(p2p.DiscRequested)
-			}
-			break loop
-		case p2pevent := <-b.emitP2PMessageEvent:
-			nodeID, err := utils.ParseHexNodeID(p2pevent.NodeID)
-			if err != nil {
-				log.Println("node ID is not valid hex string")
-				continue
-			}
-			peer := b.findPeer(nodeID)
-			if peer == nil {
-				log.Printf(
-					"p2p connection to %s is not established\n", truncateBytes(nodeID))
-				continue
-			}
-			// the peer connection is secure enough, but we could use ECIES/ECDH
-			// for futher security
-			p2p.Send(peer.rw, P2PMessageEventMsg, p2pevent)
-		case <-b.emitChannelMessageEvent:
-			log.Println("send channel message is not supported")
-		}
+func (b *Backend) SendP2PMessage(nodeID [32]byte, message types.Message) error {
+	if message.Empty() {
+		return errors.New("message is empty")
 	}
-	b.wg.Done()
-}
-
-func (b *Backend) SendP2PMessage(nodeID string, message Message) error {
-	if len(nodeID) != 64 {
-		return errors.New("node ID must be string of length 64")
+	if bytes.Equal(b.NodeID().Bytes(), nodeID[:]) {
+		return errors.New("cannot send message to self")
 	}
-	event := MakeP2PMessageEvent(time.Now(), message, nodeID)
-	log.Println("sending p2p event:", event)
-	b.emitP2PMessageEvent <- &event
+	p := b.findPeer(nodeID)
+	if p == nil {
+		msg := fmt.Sprintf("connection to %s is not established", truncateBytes(nodeID))
+		log.Println(msg)
+		return errors.New(msg)
+	}
+	log.Printf("sent p2p message '%s' to node %s\n", message.ExtractPlaintext(), truncateBytes(nodeID))
+	event := types.MakeP2PMessageEvent(message)
+	if err := p.SendMessage(event); err != nil {
+		return err
+	}
+	// Message is sent properly, but we don't know if message is properly received
+	// TODO: fix it
+	event.UserID = b.NodeID().String()
+	db.AddP2PMessageEvent(utils.GetSessionID(b.NodeID(), nodeID), event)
 	return nil
-}
-
-func (b *Backend) SendChannelMessage() {
 }
 
 // Backend APIs

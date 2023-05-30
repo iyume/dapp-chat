@@ -10,7 +10,7 @@ const ProtocolVersion = 1
 
 const protocolLength = 3
 
-const maxMessageSize = 2 * 1024 * 1024
+const maxMessageSize uint32 = 2 * 1024 * 1024
 
 // uint64 MsgCode
 const (

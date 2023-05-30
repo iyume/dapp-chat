@@ -56,16 +56,16 @@ func TestFriendCRUD(t *testing.T) {
 		log.Panicln(err)
 	}
 	defer closeCleanly(db.DB)
-	assert.Equal(map[[32]byte]friendInfo{}, *GetFriends())
+	assert.Equal(map[[32]byte]friendInfo{}, GetFriends())
 	AddFriend(f1ID, f1Remark)
-	assert.Equal(map[[32]byte]friendInfo{f1ID: {Remark: f1Remark}}, *GetFriends())
+	assert.Equal(map[[32]byte]friendInfo{f1ID: {Remark: f1Remark}}, GetFriends())
 	AddFriend(f2ID, f2Remark)
-	assert.Equal(map[[32]byte]friendInfo{f1ID: {Remark: f1Remark}, f2ID: {Remark: f2Remark}}, *GetFriends())
+	assert.Equal(map[[32]byte]friendInfo{f1ID: {Remark: f1Remark}, f2ID: {Remark: f2Remark}}, GetFriends())
 	AddFriend(f1ID, "friend1-renamed") // this is not proper behaviour
-	assert.Equal(map[[32]byte]friendInfo{f1ID: {Remark: "friend1-renamed"}, f2ID: {Remark: f2Remark}}, *GetFriends())
-	assert.ElementsMatch([][32]byte{f1ID, f2ID}, *GetFriendIDs())
+	assert.Equal(map[[32]byte]friendInfo{f1ID: {Remark: "friend1-renamed"}, f2ID: {Remark: f2Remark}}, GetFriends())
+	assert.ElementsMatch([][32]byte{f1ID, f2ID}, GetFriendIDs())
 	assert.False(HasFriend([32]byte{}))
 	assert.True(HasFriend(f1ID))
 	DeleteFriend(f1ID)
-	assert.Equal(map[[32]byte]friendInfo{f2ID: {Remark: f2Remark}}, *GetFriends())
+	assert.Equal(map[[32]byte]friendInfo{f2ID: {Remark: f2Remark}}, GetFriends())
 }

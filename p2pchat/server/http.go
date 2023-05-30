@@ -46,11 +46,22 @@ type Getter interface {
 
 	// GetString returns empty string if not string type
 	GetString(string) string
+
+	Has(string) bool
+
+	Require(...string) string
 }
 
 type paramsGetter struct {
 	json  map[string]any // could be lazy?
 	query url.Values
+}
+
+func (p paramsGetter) Has(key string) bool {
+	if _, ok := p.json[key]; ok || p.query.Has(key) {
+		return true
+	}
+	return false
 }
 
 func (p paramsGetter) Get(key string) any {
@@ -69,6 +80,16 @@ func (p paramsGetter) GetString(key string) string {
 	val := p.Get(key)
 	strval, _ := val.(string)
 	return strval
+}
+
+// Require checks multiple parameters and returns the missing key
+func (p paramsGetter) Require(params ...string) string {
+	for _, key := range params {
+		if !p.Has(key) {
+			return key
+		}
+	}
+	return ""
 }
 
 // main loop of http server
@@ -132,26 +153,7 @@ func (srv httpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// call action
 	action := strings.TrimPrefix(r.URL.Path, "/")
 	log.Println("接收 API 调用:", action)
-	resp, status := srv.caller.Call(action, getter)
-	switch status {
-	case CallSuccess:
-		break
-	case CallActionNotFound:
-		log.Println("未找到请求方法:", action)
-		http.Error(w, "action not found", http.StatusNotFound)
-		return
-	case CallArgumentNotEnough:
-		log.Println("请求参数不足:", action, *getter)
-		http.Error(w, "parameter not enough", http.StatusBadRequest)
-		return
-	default:
-		http.Error(w, "bad request", http.StatusBadRequest)
-		return
-	}
-	if resp == nil {
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
+	resp := srv.caller.Call(action, getter)
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		log.Println("写入响应数据出错:", err)

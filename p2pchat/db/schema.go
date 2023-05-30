@@ -12,7 +12,7 @@ var (
 	friendPrefix = []byte("F-")
 
 	// "M-"
-	p2pMessageLookupPrefix = []byte("M-")
+	// p2pMessageLookupPrefix = []byte("M-")
 
 	// "S-"
 	p2pSessionPrefix = []byte("S-")
@@ -28,10 +28,10 @@ func friendKey(nodeID [32]byte) []byte {
 	return append(friendPrefix, nodeID[:]...)
 }
 
-// "M-" + [8]byte -> session ID
-func p2pmessageLookupKey(messageID uint64) []byte {
-	return appendUint64(p2pMessageLookupPrefix, messageID)
-}
+// "M-" + [32]byte hash -> session ID
+// func p2pMessageLookupKey(messageID uint64) []byte {
+// 	return appendUint64(p2pMessageLookupPrefix, messageID)
+// }
 
 // "S-" + [32]byte -> session stock
 func p2pSessionKey(sessionID [32]byte) []byte {

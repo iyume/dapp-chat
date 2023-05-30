@@ -1,11 +1,10 @@
-package api
+package types
 
 import (
 	"time"
 )
 
-// 此实现参照 Onebot V12 和 https://github.com/botuniverse/go-libonebot
-// 所有 ID 相关的数据都不会在发送时构造，而是在接收时构造
+// 此实现参照 Onebot V12 和 https://github.com/botuniverse/go-libonebots
 
 const (
 	EventTypeMessage = "message" // 消息事件
@@ -29,24 +28,24 @@ type MessageEvent struct {
 
 type P2PMessageEvent struct {
 	MessageEvent
-	NodeID string `json:"node_id"` // Sender Node ID
+	UserID string `json:"user_id"` // Sender Node ID, empty in send
 }
 
-func MakeP2PMessageEvent(time_ time.Time, message Message, nodeID string) P2PMessageEvent {
+// MakeP2PMessageEvent do not assiocate with anyone, it should just be sent and handled by receiver
+func MakeP2PMessageEvent(message Message) P2PMessageEvent {
 	return P2PMessageEvent{
 		MessageEvent: MessageEvent{
 			Event: Event{
-				Time:       time_.Format(time.RFC3339Nano),
+				Time:       time.Now().Format(time.RFC3339Nano),
 				Type:       "message",
 				DetailType: "p2p",
 			},
 			Message: message},
-		NodeID: nodeID,
 	}
 }
 
 type ChannelMessageEvent struct {
 	MessageEvent
 	ChannelID string `json:"channel_id"` // Channel ID
-	NodeID    string `json:"node_id"`    // Sender Node ID
+	UserID    string `json:"user_id"`    // Sender Node ID
 }
