@@ -64,6 +64,10 @@ p2 = start_server(1, cfg2.name)
 p3 = start_server(2, cfg3.name)
 ps = (p1, p2, p3)
 
+print("#1", "102e0de7d9586b40990d986e3c5baee68678a16b2d90af3a086fb8f048594541")
+print("#2", "a7c32ffba6e9449229886522f8e37d5684fc95e07ad92d05dd3577922dcd0321")
+print("#3", "436e3172a545d485587c0e75b18b1e0759d9154396a15511a34d23200c4d2c89")
+
 
 # 下面代码不知道为什么没用，os.kill, terminate, kill 都没用
 # import time, os, signal
