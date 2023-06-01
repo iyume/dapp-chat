@@ -9,9 +9,11 @@ export interface IPeerInfo {
   version: number;
 }
 
+// TODO: add remote addr
+
 export interface IFriend {
-  remark: string;
   node_id: string;
+  remark: string;
 }
 
 export interface IP2PSession {
