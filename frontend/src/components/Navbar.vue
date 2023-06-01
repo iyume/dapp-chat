@@ -1,5 +1,5 @@
 <template>
-  <div class="navbar bg-base-300">
+  <div class="navbar bg-base-100 shadow-sm sticky top-0 z-30">
     <div class="flex-none">
       <label :for="drawerId" class="btn btn-square btn-ghost">
         <svg

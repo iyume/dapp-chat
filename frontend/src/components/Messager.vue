@@ -95,8 +95,4 @@ function send_message() {
   console.log(text.value);
   text.value = "";
 }
-
-api.getFriendList().then((resp) => {
-  friends.value = resp.data;
-});
 </script>

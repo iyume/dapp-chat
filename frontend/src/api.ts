@@ -1,15 +1,15 @@
 import axios from "axios";
 import config from "@/config";
-import type { IResp, IFriend, IP2PMessage } from "./interfaces";
+import type { IResp, IFriend, IPeerInfo, IP2PSession } from "./interfaces";
 
 if (!config.p2pApiUrl || !config.p2pToken) {
   console.warn("p2p api url or token is not provided.");
 }
 
-// p2p backend should be pre-configured
+// TODO: user input and useCookies
 const p2pApiRequest = axios.create({
   baseURL: config.p2pApiUrl,
-  timeout: 2000,
+  timeout: 5000,
   headers: {
     Authorization: `Bearer ${config.p2pToken}`,
   },
@@ -17,19 +17,17 @@ const p2pApiRequest = axios.create({
 
 export const api = {
   async login(username: string, password: string) {},
-  async sendP2PMessage(user_id: string, message: string) {
-    // TODO: message json struct; send message by user id
-    p2pApiRequest.post("/send_p2p_message", { user_id, message });
-  },
-  async getP2PMessageList(node_id: string) {
-    return p2pApiRequest.get<IResp<IP2PMessage[]>>("/get_p2p_msg_list", {
-      params: { node_id },
-    });
+  async getPeersInfo() {
+    return p2pApiRequest.get<IResp<IPeerInfo[]>>("/get_peers_info");
   },
   async getFriendList() {
     return p2pApiRequest.get<IResp<IFriend[]>>("/get_friend_list");
   },
   async addFriend(node_id: string, remark: string) {
-    p2pApiRequest.put("/add_friend", { node_id, remark });
+    p2pApiRequest.get("/add_friend", { params: { node_id, remark } });
+  },
+  async sendP2PMessage(user_id: string, message: string) {
+    // TODO: message json struct; send message by user id
+    p2pApiRequest.get("/send_p2p_message", { params: { user_id, message } });
   },
 };
