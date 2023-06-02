@@ -150,18 +150,20 @@ func (b *Backend) SendP2PMessage(nodeID [32]byte, message types.Message) error {
 // Backend APIs
 
 type peersInfo struct {
-	NodeID  string `json:"node_id"`
-	Active  bool   `json:"active"`
-	Version uint   `json:"version"`
+	NodeID     string `json:"node_id"`
+	Active     bool   `json:"active"`
+	Version    uint   `json:"version"`
+	RemoteAddr string `json:"remote_addr"`
 }
 
 func (b *Backend) PeersInfo() *[]peersInfo {
 	infos := []peersInfo{}
 	for _, p := range b.peers {
 		infos = append(infos, peersInfo{
-			NodeID:  p.p.ID().String(),
-			Active:  !p.closed,
-			Version: p.version,
+			NodeID:     p.p.ID().String(),
+			Active:     !p.closed,
+			Version:    p.version,
+			RemoteAddr: p.p.RemoteAddr().String(),
 		})
 	}
 	return &infos
