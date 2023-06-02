@@ -7,9 +7,8 @@ export interface IPeerInfo {
   node_id: string;
   active: boolean;
   version: number;
+  remote_addr: string;
 }
-
-// TODO: add remote addr
 
 export interface IFriend {
   node_id: string;

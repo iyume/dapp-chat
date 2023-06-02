@@ -1,7 +1,7 @@
 <template>
   <div class="h-full flex flex-row bg-base-100">
     <!-- Friend list -->
-    <div class="w-80 bg-base-100 overflow-hidden">
+    <div class="w-80 bg-base-100 overflow-hidden shadow-sm">
       <div class="h-4"></div>
       <!-- TODO: backend select -->
       <ul class="menu menu-compact menu-vertical px-4">
@@ -24,7 +24,12 @@
               </div>
             </div>
             <div class="flex-1 min-w-0 pb-1">
-              <p class="text-base font-medium">{{ f.remark }}</p>
+              <p class="text-base font-medium truncate text-gray-700">
+                {{ f.remark }}
+                <span class="text-xs font-light text-gray-500">{{
+                  f.remote_addr
+                }}</span>
+              </p>
               <p class="text-xs font-light truncate text-gray-500">
                 0x{{ f.node_id }}
               </p>
@@ -37,12 +42,16 @@
         <li class="menu-title">
           <span>节点列表</span>
         </li>
-        <!-- TODO: refactor style -->
         <li v-for="p in connInfo.peers" class="w-full">
           <div class="flex gap-x-4 py-0.5 rounded w-full">
-            <span>{{ p.active ? "active" : "inactive" }}</span>
             <div class="flex-1 min-w-0 pb-1">
-              <p class="text-base font-medium"></p>
+              <p class="text-xs font-normal truncate text-gray-700">
+                {{ p.remote_addr }}
+                <!-- TODO: replace with icon? -->
+                <span class="font-light text-gray-500"
+                  >({{ p.active ? "active" : "inactive" }})</span
+                >
+              </p>
               <p class="text-xs font-light truncate text-gray-500">
                 0x{{ p.node_id }}
               </p>
@@ -88,16 +97,18 @@ const connInfo = computed(() => {
   // the friends list with status joined
   const resFriends: ({
     status: FriendStatus;
+    remote_addr: string;
   } & (typeof friends.value)[number])[] = [];
   Object.keys(friendsDct).forEach((key) => {
     let f = friendsDct[key];
     let status = FriendStatus.Notconnected;
+    let remote_addr = "";
     if (f.node_id in peersInfoDct) {
-      status = peersInfoDct[f.node_id].active
-        ? FriendStatus.Connected
-        : FriendStatus.Disconnected;
+      let p = peersInfoDct[f.node_id];
+      status = p.active ? FriendStatus.Connected : FriendStatus.Disconnected;
+      remote_addr = p.remote_addr;
     }
-    resFriends.push({ ...friendsDct[key], status });
+    resFriends.push({ ...friendsDct[key], status, remote_addr });
   });
   // the peers list with friends removed
   const resPeersInfo: typeof peersInfo.value = [];
@@ -112,6 +123,9 @@ const connInfo = computed(() => {
       return a.remark.toLowerCase().localeCompare(b.remark.toLowerCase());
     }
     return a.status - b.status;
+  });
+  resPeersInfo.sort((a, b) => {
+    return Number(b.active) - Number(a.active);
   });
   return { peers: resPeersInfo, friends: resFriends };
 });
