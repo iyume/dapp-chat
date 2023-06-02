@@ -24,6 +24,11 @@ type p2pSession struct {
 	Events []types.P2PMessageEvent `json:"events"`
 }
 
+// initial with allocated content
+func newP2PSession() *p2pSession {
+	return &p2pSession{Events: make([]types.P2PMessageEvent, 0)}
+}
+
 // leveldb
 
 type Database struct {
@@ -155,15 +160,13 @@ func GetP2PSession(sessionID [32]byte) *p2pSession {
 	}
 	data, err := db.Get(p2pSessionKey(sessionID), nil)
 	if err != nil {
-		if !errors.Is(err, leveldb.ErrNotFound) {
-			log.Println(err)
-		}
-		return &p2pSession{}
+		log.Println(err)
+		return newP2PSession()
 	}
 	session := new(p2pSession)
 	if err := json.Unmarshal(data, session); err != nil {
 		log.Println(err)
-		return &p2pSession{}
+		return newP2PSession()
 	}
 	return session
 }
