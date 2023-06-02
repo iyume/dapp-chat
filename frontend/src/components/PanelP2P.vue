@@ -4,12 +4,44 @@
     <div class="w-80 bg-base-100 overflow-hidden shadow-sm">
       <div class="h-4"></div>
       <!-- TODO: backend select -->
+      <div class="px-4">
+        <div class="dropdown dropdown-bottom">
+          <label tabindex="0" class="btn btn-sm btn-primary"
+            >后端: 00.00.00.00:00000</label
+          >
+          <ul
+            tabindex="0"
+            class="dropdown-content shadow bg-base-200 rounded-box p-3 backdrop-blur bg-opacity-60 menu"
+          >
+            <li class="rounded">
+              <button
+                class="flex items-center gap-x-1 text-gray-700 text-sm px-2"
+              >
+                <MiniCheckIcon />00.00.00.00:00
+              </button>
+            </li>
+            <li class="rounded">
+              <button
+                class="flex items-center gap-x-1 text-gray-700 text-sm px-2"
+              >
+                <MiniPlusIcon />添加后端
+              </button>
+            </li>
+          </ul>
+        </div>
+        <div class="w-full flex gap-x-2 py-3">
+          <div class="badge badge-success">
+            活跃连接: {{ connInfo.stats.connected }}
+          </div>
+          <div class="badge badge-info">好友数量: {{ friends.length }}</div>
+        </div>
+      </div>
       <ul class="menu menu-compact menu-vertical px-4">
         <li class="menu-title">
           <div class="flex items-center justify-between">
             <span class="inline-block">好友节点</span>
             <button class="btn btn-ghost btn-xs">
-              <SmallPlusIcon />
+              <MiniPlusIcon />
             </button>
           </div>
         </li>
@@ -69,7 +101,8 @@
 
 <script setup lang="ts">
 import Messager from "@/components/Messager.vue";
-import SmallPlusIcon from "@/components/icons/SmallPlusIcon.vue";
+import MiniPlusIcon from "@/components/icons/MiniPlusIcon.vue";
+import MiniCheckIcon from "@/components/icons/MiniCheckIcon.vue";
 import { friends, peersInfo } from "@/store";
 import { computed } from "vue";
 
@@ -127,7 +160,13 @@ const connInfo = computed(() => {
   resPeersInfo.sort((a, b) => {
     return Number(b.active) - Number(a.active);
   });
-  return { peers: resPeersInfo, friends: resFriends };
+  const stats = { connected: 0 };
+  for (let p of peersInfo.value) {
+    if (p.active) {
+      stats.connected += 1;
+    }
+  }
+  return { peers: resPeersInfo, friends: resFriends, stats };
 });
 
 const firstChar = (remark: string) => (remark ? remark[0].toUpperCase() : "?");
