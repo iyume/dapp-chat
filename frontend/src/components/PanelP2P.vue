@@ -9,7 +9,7 @@
           <div class="flex items-center justify-between">
             <span class="inline-block">好友节点</span>
             <button class="btn btn-ghost btn-xs">
-              <SvgSmallPlus />
+              <SmallPlusIcon />
             </button>
           </div>
         </li>
@@ -60,7 +60,7 @@
 
 <script setup lang="ts">
 import Messager from "@/components/Messager.vue";
-import SvgSmallPlus from "@/components/svgs/SvgSmallPlus.vue";
+import SmallPlusIcon from "@/components/icons/SmallPlusIcon.vue";
 import { friends, peersInfo } from "@/store";
 import { computed } from "vue";
 
@@ -85,7 +85,6 @@ const connInfo = computed(() => {
   for (let f of friends.value) {
     friendsDct[f.node_id] = f;
   }
-  const peers = peersInfo.value;
   // the friends list with status joined
   const resFriends: ({
     status: FriendStatus;
