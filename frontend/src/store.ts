@@ -2,7 +2,7 @@ import { ref } from "vue";
 import type { IFriend, IPeerInfo } from "./interfaces";
 import { api } from "./api";
 
-export const currentPage = ref<"main" | "p2p">("main");
+export const currentPage = ref<"main" | "other">("main");
 export const friends = ref<IFriend[]>([]);
 export const peersInfo = ref<IPeerInfo[]>([]);
 

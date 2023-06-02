@@ -10,10 +10,10 @@ import Sidebar from "./components/Sidebar.vue";
   <Sidebar drawer-id="my-drawer-main" class="h-[calc(100vh-4rem)]">
     <template #content>
       <template v-if="currentPage == 'main'">
-        <p>this is main page</p>
-      </template>
-      <template v-if="currentPage == 'p2p'">
         <PanelP2P />
+      </template>
+      <template v-if="currentPage == 'other'">
+        <p>this is {{ currentPage }} page</p>
       </template>
     </template>
   </Sidebar>

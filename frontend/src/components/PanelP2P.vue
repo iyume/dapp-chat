@@ -1,12 +1,11 @@
 <template>
   <div class="h-full flex flex-row bg-base-100">
     <!-- Friend list -->
-    <div class="w-80 bg-base-100 overflow-hidden shadow-sm">
+    <div class="w-80 bg-base-100 overflow-x-hidden no-scrollbar shadow-sm">
       <div class="h-4"></div>
-      <!-- TODO: backend select -->
       <div class="px-4">
         <div class="dropdown dropdown-bottom">
-          <label tabindex="0" class="btn btn-sm btn-primary"
+          <label tabindex="0" class="btn btn-sm btn-primary whitespace-nowrap"
             >后端: 00.00.00.00:00000</label
           >
           <ul
@@ -30,10 +29,12 @@
           </ul>
         </div>
         <div class="w-full flex gap-x-2 py-3">
-          <div class="badge badge-success">
+          <div class="badge badge-success whitespace-nowrap">
             活跃连接: {{ connInfo.stats.connected }}
           </div>
-          <div class="badge badge-info">好友数量: {{ friends.length }}</div>
+          <div class="badge badge-info whitespace-nowrap">
+            好友数量: {{ friends.length }}
+          </div>
         </div>
       </div>
       <ul class="menu menu-compact menu-vertical px-4">
@@ -76,7 +77,7 @@
         </li>
         <li v-for="p in connInfo.peers" class="w-full">
           <div class="flex gap-x-4 py-0.5 rounded w-full">
-            <div class="flex-1 min-w-0 pb-1">
+            <div class="flex-1 min-w-0">
               <p class="text-xs font-normal truncate text-gray-700">
                 {{ p.remote_addr }}
                 <!-- TODO: replace with icon? -->
@@ -91,6 +92,7 @@
           </div>
         </li>
       </ul>
+      <div class="h-4"></div>
     </div>
     <div class="h-full">
       <!-- Messager -->
@@ -171,3 +173,5 @@ const connInfo = computed(() => {
 
 const firstChar = (remark: string) => (remark ? remark[0].toUpperCase() : "?");
 </script>
+
+<style scoped></style>

@@ -13,12 +13,13 @@
         <!-- Sidebar content here -->
         <li>
           <!-- toggle could be done by this.$refs.input.checked = false -->
-          <label :for="drawerId" @click="currentPage = 'main'"> 主页面 </label>
+          <label :for="drawerId" @click="currentPage = 'main'">主页面</label>
         </li>
         <li>
-          <label :for="drawerId" @click="currentPage = 'p2p'"> P2P 页面 </label>
+          <label :for="drawerId" @click="currentPage = 'other'">其他页面</label>
         </li>
       </ul>
+      <!-- responsively place friends here? -->
     </div>
   </div>
 </template>
