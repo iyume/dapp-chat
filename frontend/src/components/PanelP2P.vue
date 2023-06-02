@@ -1,7 +1,9 @@
 <template>
   <div class="h-full flex flex-row bg-base-100">
     <!-- Friend list -->
-    <div class="w-80 bg-base-100 overflow-x-hidden no-scrollbar shadow-sm">
+    <div
+      class="w-80 flex-none bg-base-100 overflow-x-hidden no-scrollbar shadow-sm"
+    >
       <div class="h-4"></div>
       <div class="px-4">
         <div class="dropdown dropdown-bottom">
@@ -33,7 +35,7 @@
             活跃连接: {{ connInfo.stats.connected }}
           </div>
           <div class="badge badge-info whitespace-nowrap">
-            好友数量: {{ friends.length }}
+            好友数量: {{ connInfo.stats.friendCount }}
           </div>
         </div>
       </div>
@@ -42,12 +44,17 @@
           <div class="flex items-center justify-between">
             <span class="inline-block">好友节点</span>
             <button class="btn btn-ghost btn-xs">
+              <!-- TODO: add button action -->
               <MiniPlusIcon />
             </button>
           </div>
         </li>
         <li v-for="f in connInfo.friends" class="w-full">
-          <div class="flex gap-x-4 py-0.5 rounded w-full">
+          <div
+            class="flex gap-x-4 py-0.5 rounded w-full"
+            :class="{ 'bg-base-300': f.node_id == selectedNodeID }"
+            @click="selectedNodeID = f.node_id"
+          >
             <div
               class="flex-none avatar placeholder"
               :class="cssAvatarStatusTable[f.status]"
@@ -76,11 +83,15 @@
           <span>节点列表</span>
         </li>
         <li v-for="p in connInfo.peers" class="w-full">
-          <div class="flex gap-x-4 py-0.5 rounded w-full">
+          <div
+            class="flex gap-x-4 py-0.5 rounded w-full"
+            :class="{ 'bg-base-300': p.node_id == selectedNodeID }"
+            @click="selectedNodeID = p.node_id"
+          >
             <div class="flex-1 min-w-0">
               <p class="text-xs font-normal truncate text-gray-700">
                 {{ p.remote_addr }}
-                <!-- TODO: replace with icon? -->
+                <!-- replace with icon? -->
                 <span class="font-light text-gray-500"
                   >({{ p.active ? "active" : "inactive" }})</span
                 >
@@ -94,9 +105,12 @@
       </ul>
       <div class="h-4"></div>
     </div>
-    <div class="h-full">
-      <!-- Messager -->
-      <p>Messaging</p>
+    <!-- Chat panel, add friend, etc. -->
+    <div class="w-full">
+      <Messager v-if="selectedNodeID != ''" :node-id="selectedNodeID" />
+    </div>
+    <div class="w-96 flex-none">
+      <!-- stats here? peer acitvity here? -->
     </div>
   </div>
 </template>
@@ -105,14 +119,11 @@
 import Messager from "@/components/Messager.vue";
 import MiniPlusIcon from "@/components/icons/MiniPlusIcon.vue";
 import MiniCheckIcon from "@/components/icons/MiniCheckIcon.vue";
-import { friends, peersInfo } from "@/store";
-import { computed } from "vue";
+import { friendsPeerInfo, peersInfo, FriendStatus } from "@/store";
+import { computed, ref } from "vue";
+import type { IPeerInfo } from "@/interfaces";
 
-enum FriendStatus {
-  Connected,
-  Disconnected,
-  Notconnected,
-}
+const selectedNodeID = ref("");
 
 const cssAvatarStatusTable: Record<FriendStatus, string> = {
   [FriendStatus.Connected]: "online",
@@ -121,37 +132,16 @@ const cssAvatarStatusTable: Record<FriendStatus, string> = {
 };
 
 const connInfo = computed(() => {
-  const peersInfoDct: { [key: string]: (typeof peersInfo.value)[number] } = {};
-  for (let p of peersInfo.value) {
-    peersInfoDct[p.node_id] = p;
-  }
-  const friendsDct: { [key: string]: (typeof friends.value)[number] } = {};
-  for (let f of friends.value) {
-    friendsDct[f.node_id] = f;
-  }
-  // the friends list with status joined
-  const resFriends: ({
-    status: FriendStatus;
-    remote_addr: string;
-  } & (typeof friends.value)[number])[] = [];
-  Object.keys(friendsDct).forEach((key) => {
-    let f = friendsDct[key];
-    let status = FriendStatus.Notconnected;
-    let remote_addr = "";
-    if (f.node_id in peersInfoDct) {
-      let p = peersInfoDct[f.node_id];
-      status = p.active ? FriendStatus.Connected : FriendStatus.Disconnected;
-      remote_addr = p.remote_addr;
-    }
-    resFriends.push({ ...friendsDct[key], status, remote_addr });
-  });
+  const friendsPeerInfo_ = friendsPeerInfo.value;
+  const peersInfo_ = peersInfo.value;
   // the peers list with friends removed
-  const resPeersInfo: typeof peersInfo.value = [];
-  Object.keys(peersInfoDct).forEach((key) => {
-    if (!(key in friendsDct)) {
-      resPeersInfo.push(peersInfoDct[key]);
+  const resPeersInfo: IPeerInfo[] = [];
+  const resFriends = Object.values(friendsPeerInfo_);
+  for (let p of Object.values(peersInfo_)) {
+    if (!(p.node_id in friendsPeerInfo_)) {
+      resPeersInfo.push(p);
     }
-  });
+  }
   resFriends.sort((a, b) => {
     if (a.status == b.status) {
       // NOTE: option sensitivity behaves strange
@@ -162,8 +152,11 @@ const connInfo = computed(() => {
   resPeersInfo.sort((a, b) => {
     return Number(b.active) - Number(a.active);
   });
-  const stats = { connected: 0 };
-  for (let p of peersInfo.value) {
+  const stats = {
+    connected: 0,
+    friendCount: resFriends.length,
+  };
+  for (let p of Object.values(peersInfo_)) {
     if (p.active) {
       stats.connected += 1;
     }

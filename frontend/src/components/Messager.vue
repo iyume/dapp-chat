@@ -1,98 +1,99 @@
 <template>
-  <div>
-    <p>Messaging</p>
-    <div v-if="chat_with != null" class="h-full w-full">
-      <div class="h-3/4 w-full overflow-y-auto">
-        <div v-for="item in message_list" :key="item.message_id">
-          <div
-            :class="`chat ${item.direction == 1 ? 'chat-start' : 'chat-end'}`"
-          >
-            <div class="chat-image avatar">
-              <div class="w-10 rounded-full">
-                <img :src="item.avatar" />
-              </div>
-            </div>
-            <div class="chat-header">
-              {{ item.name }}
-              <time class="text-xs opacity-50">{{ item.sendTime }}</time>
-            </div>
-            <div class="chat-bubble">{{ item.content }}</div>
-            <div class="opacity-50 chat-footer" v-if="item.direction == 2">
-              {{ item.seenTime }}
-            </div>
+  <div class="flex flex-col h-full">
+    <!-- TODO: exit button -->
+    <div class="h-full overflow-y-scroll p-8">
+      <h2 class="text-3xl font-extrabold pb-2">{{ userRemark }}</h2>
+      <h3 class="text-sm text-gray-500">0x{{ nodeId }}</h3>
+      <div class="h-6"></div>
+      <div
+        class="badge whitespace-nowrap"
+        :class="connBadgeTable[status].badge"
+      >
+        {{ connBadgeTable[status].label }}
+      </div>
+      <div class="divider"></div>
+      <template v-for="e in selectedSession.events">
+        <div
+          class="chat"
+          :class="e.user_id == selfID ? 'chat-end' : 'chat-start'"
+        >
+          <div class="chat-header">
+            {{ e.user_id == selfID ? "me" : userRemark }}
+            <time class="text-xs text-gray-500">{{ e.time }}</time>
           </div>
+          <div class="chat-bubble">{{ utils.extractPlainText(e.message) }}</div>
         </div>
-      </div>
-      <div class="container h-1/4 w-full form-control">
-        <textarea
-          class="textarea textarea-bordered h-full w-full"
-          placeholder="Type your messaeg here"
-          style="resize: none"
-          v-model="text"
-        ></textarea>
-        <label class="label">
-          <span></span>
-          <span>
-            <button @click="send_message" class="btn btn-sm btn-primary mx-1">
-              Send
-            </button>
-          </span>
-        </label>
-      </div>
+      </template>
+    </div>
+    <div class="max-h-24 overflow-hidden p-8">
+      <!-- TODO: auto resize textarea to fit content -->
+      <textarea
+        class="textarea min-h-12 h-12 resize-none w-full bg-base-300"
+        placeholder="输入消息发送"
+      ></textarea>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { api } from "@/api";
-import type { IFriend } from "@/interfaces";
+import { computed, ref } from "vue";
+import type { IP2PSession } from "@/interfaces";
+import {
+  actionGetP2PSession,
+  p2pSessions,
+  selfID,
+  friendsPeerInfo,
+  FriendStatus,
+  peersInfo,
+} from "@/store";
+import utils from "@/utils";
 
-export type MessageItemType = {
-  message_id: number;
-  content: string;
-  sendTime: string;
-  seenTime?: string;
-  direction: 1 | 2; // 1: received, 2: sent
-  name?: string;
-  avatar?: string;
+const props = defineProps({
+  nodeId: { type: String, required: true },
+});
+
+const selectedSession = computed<IP2PSession>(() => {
+  let id = props.nodeId;
+  if (id == "") {
+    // no chat selected, should not be render
+    return { events: [] };
+  }
+  if (id in p2pSessions) {
+    return p2pSessions[id].value;
+  }
+  const newref = ref({ events: [] });
+  p2pSessions[id] = newref;
+  actionGetP2PSession(id);
+  return newref.value;
+});
+
+// undefined indicates that this is anonymous chat
+const friendInfo = computed<(typeof friendsPeerInfo.value)[string] | undefined>(
+  () => friendsPeerInfo.value[props.nodeId]
+);
+
+const connBadgeTable: Record<FriendStatus, { badge: string; label: string }> = {
+  [FriendStatus.Connected]: { badge: "badge-success", label: "已连接" },
+  [FriendStatus.Disconnected]: { badge: "badge-warning", label: "不活跃" },
+  [FriendStatus.Notconnected]: { badge: "badge-error", label: "未连接" },
 };
 
-const friends = ref<IFriend[] | undefined>();
-const message_list = ref<MessageItemType[] | undefined>();
+const status = computed(() => {
+  if (friendInfo.value != undefined) {
+    return friendInfo.value.status;
+  }
+  if (props.nodeId in peersInfo.value) {
+    return peersInfo.value[props.nodeId].active
+      ? FriendStatus.Connected
+      : FriendStatus.Disconnected;
+  }
+  return FriendStatus.Notconnected;
+});
 
-const chat_with = ref<string | undefined>();
-const text = ref<string>("");
-
-function select_chat(node_id: string) {
-  chat_with.value = node_id;
-  api.getP2PMessageList(node_id).then((resp) => {
-    message_list.value = resp.data.map((val) => {
-      let name = undefined;
-      let direction = 1;
-      if (Math.random() < 0.5) {
-        let fr = friends.value?.find((f) => f.node_id == val.node_id);
-        name = fr?.remark || val.node_id.toString();
-        direction = 1;
-      } else {
-        name = "Me";
-        direction = 2;
-      }
-      return {
-        message_id: val.message_id,
-        content: val.message,
-        sendTime: val.time,
-        seenTime: "not implemented",
-        direction,
-        name,
-        undefined,
-      } as MessageItemType;
-    });
-  });
-}
-
-function send_message() {
-  console.log(text.value);
-  text.value = "";
-}
+const userRemark = computed<string>(() => {
+  if (friendInfo.value == undefined) {
+    return "匿名";
+  }
+  return friendInfo.value.remark;
+});
 </script>

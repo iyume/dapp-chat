@@ -1,6 +1,6 @@
 import axios from "axios";
 import config from "@/config";
-import type { IResp, IFriend, IPeerInfo, IP2PSession } from "./interfaces";
+import type { IResp, IFriendInfo, IPeerInfo, IP2PSession } from "./interfaces";
 
 if (!config.p2pApiUrl || !config.p2pToken) {
   console.warn("p2p api url or token is not provided.");
@@ -21,10 +21,15 @@ export const api = {
     return p2pApiRequest.get<IResp<IPeerInfo[]>>("/get_peers_info");
   },
   async getFriendList() {
-    return p2pApiRequest.get<IResp<IFriend[]>>("/get_friend_list");
+    return p2pApiRequest.get<IResp<IFriendInfo[]>>("/get_friend_list");
   },
   async addFriend(node_id: string, remark: string) {
     p2pApiRequest.get("/add_friend", { params: { node_id, remark } });
+  },
+  async getP2PSession(node_id: string) {
+    return p2pApiRequest.get<IResp<IP2PSession>>("/get_p2p_session", {
+      params: { node_id },
+    });
   },
   async sendP2PMessage(user_id: string, message: string) {
     // TODO: message json struct; send message by user id

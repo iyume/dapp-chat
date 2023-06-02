@@ -10,18 +10,36 @@ export interface IPeerInfo {
   remote_addr: string;
 }
 
-export interface IFriend {
+export interface IFriendInfo {
   node_id: string;
   remark: string;
 }
 
-export interface IP2PSession {
-  events: IMessage[];
+export type IMessage = ISegment[];
+
+interface ISegment {
+  type: string;
+  data: any;
 }
 
-export interface IMessage {
-  time: string;
-  node_id: string;
-  message_id: number;
-  message: string;
+export interface ITextSegment {
+  text: string;
+}
+
+interface IEvent {
+  time: string; // RFC3339Nano
+  type: string;
+  detail_type: string;
+}
+
+interface IMessageEvent extends IEvent {
+  message: IMessage;
+}
+
+export interface IP2PMessageEvent extends IMessageEvent {
+  user_id: string;
+}
+
+export interface IP2PSession {
+  events: IP2PMessageEvent[];
 }
