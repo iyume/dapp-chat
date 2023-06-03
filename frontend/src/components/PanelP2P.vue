@@ -106,8 +106,13 @@
       <div class="h-4"></div>
     </div>
     <!-- Chat panel, add friend, etc. -->
-    <div class="w-full">
-      <Messager v-if="selectedNodeID != ''" :node-id="selectedNodeID" />
+    <div class="container flex flex-col h-full">
+      <!-- TODO: exit button -->
+      <div class="h-full">
+        <!-- TODO: add friend search page (search by pubkey, node id, remote addr, etc.) -->
+        <Messager v-if="selectedNodeID != ''" :node-id="selectedNodeID" />
+      </div>
+      <div class="flex-none h-4"></div>
     </div>
     <div class="w-96 flex-none">
       <!-- stats here? peer acitvity here? -->

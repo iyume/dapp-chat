@@ -14,5 +14,5 @@ export default {
    * Convert time to readable time in message sent.
    * @param time RFC-3339 (ISO-8601) time
    */
-  sendTime: (time: string) => {},
+  sentTimeChat: (time: string) => {},
 };

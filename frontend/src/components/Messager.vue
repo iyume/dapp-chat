@@ -1,10 +1,12 @@
 <template>
-  <div class="flex flex-col h-full">
-    <!-- TODO: exit button -->
+  <div class="flex flex-col w-full h-full">
     <div class="h-full overflow-y-scroll p-8">
       <h2 class="text-3xl font-extrabold pb-2">{{ userRemark }}</h2>
-      <h3 class="text-sm text-gray-500">0x{{ nodeId }}</h3>
-      <div class="h-6"></div>
+      <span class="text-sm flex-1 block text-gray-500 min-w-0 shrink truncate">
+        <!-- FIXME: shrink not work -->
+        0x{{ nodeId }}
+      </span>
+      <div class="h-4"></div>
       <div
         class="badge whitespace-nowrap"
         :class="connBadgeTable[status].badge"
@@ -19,16 +21,17 @@
         >
           <div class="chat-header">
             {{ e.user_id == selfID ? "me" : userRemark }}
+            <!-- FIXME: implement utils.sentTimeChat -->
             <time class="text-xs text-gray-500">{{ e.time }}</time>
           </div>
           <div class="chat-bubble">{{ utils.extractPlainText(e.message) }}</div>
         </div>
       </template>
     </div>
-    <div class="max-h-24 overflow-hidden p-8">
+    <div class="flex-none overflow-hidden px-4 py-2">
       <!-- TODO: auto resize textarea to fit content -->
       <textarea
-        class="textarea min-h-12 h-12 resize-none w-full bg-base-300"
+        class="textarea h-16 resize-none w-full bg-base-300 no-scrollbar leading-5"
         placeholder="输入消息发送"
       ></textarea>
     </div>
