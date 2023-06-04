@@ -1,5 +1,5 @@
 <template>
-  <div class="drawer">
+  <div class="drawer overflow-x-auto">
     <input :id="drawerId" type="checkbox" class="drawer-toggle" />
     <div class="drawer-content">
       <!-- Page content here -->

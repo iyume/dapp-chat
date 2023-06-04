@@ -104,7 +104,7 @@
       <div class="h-4"></div>
     </div>
     <!-- Chat panel, add friend, etc. -->
-    <div class="container flex flex-col h-full">
+    <div class="container flex flex-col">
       <!-- TODO: exit button -->
       <div class="h-full">
         <!-- TODO: add friend search page (search by pubkey, node id, remote addr, etc.) -->
