@@ -1,8 +1,10 @@
 <template>
   <div class="flex flex-col w-full h-full">
     <div class="h-full overflow-y-scroll p-8">
-      <h2 class="text-3xl font-extrabold pb-2">{{ userRemark }}</h2>
-      <span class="text-sm flex-1 block text-gray-500 min-w-0 shrink truncate">
+      <h2 class="text-3xl font-extrabold pb-2">
+        {{ userRemark }}
+      </h2>
+      <span class="text-sm flex-1 block min-w-0 shrink truncate opacity-60">
         <!-- FIXME: shrink not work -->
         0x{{ nodeId }}
       </span>
@@ -22,7 +24,7 @@
           <div class="chat-header">
             {{ e.user_id == selfID ? "me" : userRemark }}
             <!-- FIXME: implement utils.sentTimeChat -->
-            <time class="text-xs text-gray-500">{{ e.time }}</time>
+            <time class="text-xs opacity-50">{{ e.time }}</time>
           </div>
           <div class="chat-bubble">{{ utils.extractPlainText(e.message) }}</div>
         </div>

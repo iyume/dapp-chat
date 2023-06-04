@@ -7,19 +7,23 @@
         {{ console.error("main content must be provided") }}
       </slot>
     </div>
-    <div class="drawer-side">
+    <!-- NOTE: DaisyUI v3 use fixed 0 0 for drawer-side which cause element overlap. It is not easy to fix. -->
+    <!-- Animation bug ref: https://github.com/saadeghi/daisyui/issues/1888 -->
+    <div class="drawer-side top-16 z-10">
       <label :for="drawerId" class="drawer-overlay"></label>
-      <ul class="menu p-4 w-80 bg-base-100 text-base-content">
+      <ul class="menu p-4 w-80 h-full bg-base-100 text-base">
         <!-- Sidebar content here -->
         <li>
-          <!-- toggle could be done by this.$refs.input.checked = false -->
-          <label :for="drawerId" @click="currentPage = 'main'">主页面</label>
+          <label :for="drawerId" @click="currentPage = 'main'" class="py-3"
+            >主页面</label
+          >
         </li>
         <li>
-          <label :for="drawerId" @click="currentPage = 'other'">其他页面</label>
+          <label :for="drawerId" @click="currentPage = 'other'" class="py-3"
+            >其他页面</label
+          >
         </li>
       </ul>
-      <!-- responsively place friends here? -->
     </div>
   </div>
 </template>

@@ -15,16 +15,12 @@
             class="dropdown-content shadow bg-base-200 rounded-box p-3 backdrop-blur bg-opacity-60 menu"
           >
             <li class="rounded">
-              <button
-                class="flex items-center gap-x-1 text-gray-700 text-sm px-2"
-              >
+              <button class="flex items-center gap-x-1 text-sm px-2">
                 <MiniCheckIcon />00.00.00.00:00
               </button>
             </li>
             <li class="rounded">
-              <button
-                class="flex items-center gap-x-1 text-gray-700 text-sm px-2"
-              >
+              <button class="flex items-center gap-x-1 text-sm px-2">
                 <MiniPlusIcon />添加后端
               </button>
             </li>
@@ -59,18 +55,20 @@
               class="flex-none avatar placeholder"
               :class="cssAvatarStatusTable[f.status]"
             >
-              <div class="bg-neutral-focus text-white rounded-full w-8">
+              <div
+                class="bg-neutral-focus text-neutral-content rounded-full w-8"
+              >
                 <span class="text-xs">{{ firstChar(f.remark) }}</span>
               </div>
             </div>
             <div class="flex-1 min-w-0 pb-1">
-              <p class="text-base font-medium truncate text-gray-700">
+              <p class="text-base font-medium truncate">
                 {{ f.remark }}
-                <span class="text-xs font-light text-gray-500">{{
-                  f.remote_addr
-                }}</span>
+                <span class="text-xs font-light opacity-60">
+                  {{ f.remote_addr }}
+                </span>
               </p>
-              <p class="text-xs font-light truncate text-gray-500">
+              <p class="text-xs font-light opacity-60 truncate">
                 0x{{ f.node_id }}
               </p>
             </div>
@@ -89,14 +87,14 @@
             @click="selectedNodeID = p.node_id"
           >
             <div class="flex-1 min-w-0">
-              <p class="text-xs font-normal truncate text-gray-700">
+              <p class="text-xs font-normal truncate">
                 {{ p.remote_addr }}
                 <!-- replace with icon? -->
-                <span class="font-light text-gray-500"
+                <span class="font-light opacity-60"
                   >({{ p.active ? "active" : "inactive" }})</span
                 >
               </p>
-              <p class="text-xs font-light truncate text-gray-500">
+              <p class="text-xs font-light opacity-60 truncate">
                 0x{{ p.node_id }}
               </p>
             </div>

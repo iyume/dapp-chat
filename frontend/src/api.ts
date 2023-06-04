@@ -9,7 +9,7 @@ if (!config.p2pApiUrl || !config.p2pToken) {
 // TODO: user input and useCookies
 const p2pApiRequest = axios.create({
   baseURL: config.p2pApiUrl,
-  timeout: 5000,
+  timeout: 10000,
   headers: {
     Authorization: `Bearer ${config.p2pToken}`,
   },
