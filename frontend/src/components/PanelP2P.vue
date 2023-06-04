@@ -6,26 +6,7 @@
     >
       <div class="h-4"></div>
       <div class="px-4">
-        <div class="dropdown dropdown-bottom">
-          <label tabindex="0" class="btn btn-sm btn-primary whitespace-nowrap"
-            >后端: 00.00.00.00:00000</label
-          >
-          <ul
-            tabindex="0"
-            class="dropdown-content shadow bg-base-200 rounded-box p-3 backdrop-blur bg-opacity-60 menu"
-          >
-            <li class="rounded">
-              <button class="flex items-center gap-x-1 text-sm px-2">
-                <MiniCheckIcon />00.00.00.00:00
-              </button>
-            </li>
-            <li class="rounded">
-              <button class="flex items-center gap-x-1 text-sm px-2">
-                <MiniPlusIcon />添加后端
-              </button>
-            </li>
-          </ul>
-        </div>
+        <BackendSelector />
         <div class="w-full flex gap-x-2 py-3">
           <div class="badge badge-success whitespace-nowrap">
             活跃连接: {{ connInfo.stats.connected }}
@@ -121,7 +102,7 @@
 <script setup lang="ts">
 import Messager from "@/components/Messager.vue";
 import MiniPlusIcon from "@/components/icons/MiniPlusIcon.vue";
-import MiniCheckIcon from "@/components/icons/MiniCheckIcon.vue";
+import BackendSelector from "./BackendSelector.vue";
 import { friendsPeerInfo, peersInfo, FriendStatus } from "@/store";
 import { computed, ref } from "vue";
 import type { IPeerInfo } from "@/interfaces";
