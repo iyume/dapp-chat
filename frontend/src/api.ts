@@ -1,12 +1,13 @@
 import axios from "axios";
-import config from "@/config";
+
 import type { IResp, IFriendInfo, IPeerInfo, IP2PSession } from "./interfaces";
+import config from "@/config";
 
 if (!config.p2pApiUrl || !config.p2pToken) {
   console.warn("p2p api url or token is not provided.");
 }
 
-// TODO: user input and useCookies
+// TODO: use store.ts/currentBackend to refactor it
 const p2pApiRequest = axios.create({
   baseURL: config.p2pApiUrl,
   timeout: 10000,

@@ -1,18 +1,19 @@
 <template>
   <div class="dropdown">
-    <label tabindex="0" class="btn btn-sm btn-primary whitespace-nowrap"
-      >后端: 00.00.00.00:00000</label
-    >
+    <label tabindex="0" class="btn btn-sm btn-primary whitespace-nowrap">
+      <!-- TODO: sche check backend status and show -->
+      后端: {{ currentBackend || "未选择" }}
+    </label>
     <ul
       tabindex="0"
-      class="dropdown-content menu p-2 shadow bg-base-100 rounded-box backdrop-blur bg-opacity-50 z-20"
+      class="dropdown-content menu p-2 shadow bg-base-100 rounded-box backdrop-blur bg-opacity-50 z-20 whitespace-nowrap"
     >
-      <li class="rounded">
+      <li v-for="b in backends" @click="currentBackend = b.addr">
         <button class="flex items-center gap-x-1 text-sm px-2">
-          <MiniCheckIcon />00.00.00.00:00
+          <MiniCheckIcon />{{ b.addr }}
         </button>
       </li>
-      <li class="rounded">
+      <li @click="p2pStage = 'add_backend'">
         <button class="flex items-center gap-x-1 text-sm px-2">
           <MiniPlusIcon />添加后端
         </button>
@@ -21,6 +22,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import MiniCheckIcon from "@/components/icons/MiniCheckIcon.vue";
-import MiniPlusIcon from "@/components/icons/MiniPlusIcon.vue";
+import MiniCheckIcon from "./icons/MiniCheckIcon.vue";
+import MiniPlusIcon from "./icons/MiniPlusIcon.vue";
+import { currentBackend, backends, p2pStage } from "@/store";
 </script>

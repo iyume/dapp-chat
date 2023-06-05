@@ -1,9 +1,11 @@
 <template>
-  <div class="flex flex-col w-full h-full">
-    <div class="h-full overflow-y-scroll p-8">
-      <h2 class="text-3xl font-extrabold pb-2">
+  <div class="flex flex-col h-full">
+    <div class="h-full overflow-y-scroll px-4">
+      <div class="h-8"></div>
+      <h2 class="text-3xl font-extrabold">
         {{ userRemark }}
       </h2>
+      <div class="h-2"></div>
       <span class="text-sm flex-1 block min-w-0 shrink truncate opacity-60">
         <!-- FIXME: shrink not work -->
         0x{{ nodeId }}
@@ -30,7 +32,7 @@
         </div>
       </template>
     </div>
-    <div class="flex-none overflow-hidden px-4 py-2">
+    <div class="flex-none overflow-hidden px-4">
       <!-- TODO: auto resize textarea to fit content -->
       <textarea
         class="textarea h-16 resize-none w-full bg-base-300 no-scrollbar leading-5"
@@ -42,6 +44,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+
 import type { IP2PSession } from "@/interfaces";
 import {
   actionGetP2PSession,

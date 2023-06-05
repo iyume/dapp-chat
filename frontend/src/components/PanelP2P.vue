@@ -30,7 +30,7 @@
           <div
             class="flex gap-x-4 py-0.5 rounded w-full"
             :class="{ 'bg-base-300': f.node_id == selectedNodeID }"
-            @click="selectedNodeID = f.node_id"
+            @click="selectNodeID(f.node_id)"
           >
             <div
               class="flex-none avatar placeholder"
@@ -65,7 +65,7 @@
           <div
             class="flex gap-x-4 py-0.5 rounded w-full"
             :class="{ 'bg-base-300': p.node_id == selectedNodeID }"
-            @click="selectedNodeID = p.node_id"
+            @click="selectNodeID(p.node_id)"
           >
             <div class="flex-1 min-w-0">
               <p class="text-xs font-normal truncate">
@@ -86,10 +86,21 @@
     </div>
     <!-- Chat panel, add friend, etc. -->
     <div class="container flex flex-col">
-      <!-- TODO: exit button -->
-      <div class="h-full">
+      <!-- exit button? -->
+      <div class="h-full px-2">
         <!-- TODO: add friend search page (search by pubkey, node id, remote addr, etc.) -->
-        <Messager v-if="selectedNodeID != ''" :node-id="selectedNodeID" />
+        <div v-if="p2pStage != null" class="pt-4">
+          <div class="btn btn-circle" @click="resetStage">
+            <ArrowLeftIcon />
+          </div>
+          <AddBackend
+            v-if="p2pStage == 'add_backend'"
+            :exit="resetStage"
+          ></AddBackend>
+          <div v-else-if="p2pStage == 'add_friend'"></div>
+        </div>
+        <Messager v-else-if="selectedNodeID != ''" :node-id="selectedNodeID" />
+        <div v-else>选择节点以发送消息</div>
       </div>
       <div class="flex-none h-4"></div>
     </div>
@@ -100,14 +111,27 @@
 </template>
 
 <script setup lang="ts">
-import Messager from "@/components/Messager.vue";
-import MiniPlusIcon from "@/components/icons/MiniPlusIcon.vue";
-import BackendSelector from "./BackendSelector.vue";
-import { friendsPeerInfo, peersInfo, FriendStatus } from "@/store";
 import { computed, ref } from "vue";
+
+import Messager from "./Messager.vue";
+import MiniPlusIcon from "./icons/MiniPlusIcon.vue";
+import BackendSelector from "./BackendSelector.vue";
+import AddBackend from "./AddBackend.vue";
+import ArrowLeftIcon from "./icons/ArrowLeftIcon.vue";
+
 import type { IPeerInfo } from "@/interfaces";
+import { friendsPeerInfo, peersInfo, FriendStatus, p2pStage } from "@/store";
+
+function resetStage() {
+  p2pStage.value = null;
+}
 
 const selectedNodeID = ref("");
+
+function selectNodeID(nodeID: string) {
+  selectedNodeID.value = nodeID;
+  p2pStage.value = null;
+}
 
 const cssAvatarStatusTable: Record<FriendStatus, string> = {
   [FriendStatus.Connected]: "online",
@@ -150,5 +174,3 @@ const connInfo = computed(() => {
 
 const firstChar = (remark: string) => (remark ? remark[0].toUpperCase() : "?");
 </script>
-
-<style scoped></style>
