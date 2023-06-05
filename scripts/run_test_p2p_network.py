@@ -1,7 +1,8 @@
 # mypy: ignore-errors
+import os
+import shutil
 import subprocess
 import tempfile
-import shutil
 
 cfg1 = tempfile.NamedTemporaryFile("w")  # bootnode cfg
 cfg2 = tempfile.NamedTemporaryFile("w")
@@ -49,11 +50,14 @@ for i, c in enumerate((cfg1, cfg2, cfg3)):
 
 # Run one bootnode and two regular nodes
 
+p2pchat_executable = "p2pchat-bin"
+os.system(f"go build -o {p2pchat_executable} ./p2pchat")
+
 
 def start_server(id: int, config: str) -> subprocess.Popen:
     logfile = open(f"test-backend-{id}.log", "w")
     return subprocess.Popen(
-        ["go", "run", "./p2pchat", "--config", config],
+        [f"./{p2pchat_executable}", "--config", config],
         stdout=logfile,
         stderr=logfile,
     )
@@ -69,13 +73,14 @@ print("#2", "a7c32ffba6e9449229886522f8e37d5684fc95e07ad92d05dd3577922dcd0321")
 print("#3", "436e3172a545d485587c0e75b18b1e0759d9154396a15511a34d23200c4d2c89")
 
 
-# 下面代码不知道为什么没用，os.kill, terminate, kill 都没用
-# import time, os, signal
+import os
+import time
 
-# time.sleep(3)
-# p3.terminate()
-# retcode = p3.wait()
-# print("retcode", retcode)
+# kill p3 after connected to test for inactive node
+time.sleep(5)
+p3.terminate()
+retcode = p3.wait()
+print("retcode", retcode)
 
 
 try:
@@ -90,3 +95,4 @@ except KeyboardInterrupt:
 finally:
     for d in data_dirs:
         shutil.rmtree(d, ignore_errors=True)
+    os.remove(p2pchat_executable)
