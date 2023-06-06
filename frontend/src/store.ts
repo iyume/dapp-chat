@@ -8,9 +8,7 @@ export const currentPage = ref<"main" | "other">("main");
 export const p2pStage = ref<"add_backend" | "add_friend" | null>(null);
 export const friendsInfo = ref<{ [nodeID: string]: IFriendInfo }>({});
 export const peersInfo = ref<{ [nodeID: string]: IPeerInfo }>({});
-export const selfID = ref(
-  "102e0de7d9586b40990d986e3c5baee68678a16b2d90af3a086fb8f048594541"
-); // TODO: add introspection api
+export const selfID = ref("");
 /**
  * Map node ID to p2p session ref. This is shallow ref and it should be entirely updated.
  */
@@ -53,6 +51,18 @@ export const friendsPeerInfo = computed(() => {
   }
   return res;
 });
+
+export async function actionGetSelfID() {
+  try {
+    const resp = await api.getSelfID();
+    if (resp.status != 200 || resp.data.retcode != 0) {
+      throw "request failed";
+    }
+    selfID.value = resp.data.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
 
 export async function actionGetFriends() {
   try {
@@ -102,5 +112,6 @@ export async function actionGetP2PSession(nodeID: string) {
 }
 
 // TODO: scheduler
+actionGetSelfID();
 actionGetFriends();
 actionGetPeersInfo();

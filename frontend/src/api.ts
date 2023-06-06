@@ -15,7 +15,9 @@ const p2pApiRequest = computed(() =>
 );
 
 export const api = {
-  async login(username: string, password: string) {},
+  async getSelfID() {
+    return p2pApiRequest.value.get<IResp<string>>("/get_self_id");
+  },
   async getPeersInfo() {
     return p2pApiRequest.value.get<IResp<IPeerInfo[]>>("/get_peers_info");
   },
@@ -30,10 +32,10 @@ export const api = {
       params: { node_id },
     });
   },
-  async sendP2PMessage(user_id: string, message: string) {
+  async sendP2PMessage(node_id: string, message: string) {
     // TODO: message json struct; send message by user id
     p2pApiRequest.value.get("/send_p2p_message", {
-      params: { user_id, message },
+      params: { node_id, message },
     });
   },
 };

@@ -6,12 +6,18 @@
     >
       <div class="h-4"></div>
       <div class="px-4">
-        <BackendSelector />
-        <div class="w-full flex gap-x-2 py-3">
-          <div class="badge badge-success whitespace-nowrap">
+        <div class="flex flex-wrap gap-2">
+          <BackendSelector />
+          <div class="w-full"></div>
+          <!-- TODO: add tooltip on ID -->
+          <!-- See also: https://github.com/saadeghi/daisyui/issues/1899 -->
+          <div class="badge badge-info whitespace-nowrap cursor-pointer">
+            ID: {{ selfIDText }}
+          </div>
+          <div class="badge badge-success whitespace-nowrap cursor-pointer">
             活跃连接: {{ connInfo.stats.connected }}
           </div>
-          <div class="badge badge-info whitespace-nowrap">
+          <div class="badge badge-info whitespace-nowrap cursor-pointer">
             好友数量: {{ connInfo.stats.friendCount }}
           </div>
         </div>
@@ -120,11 +126,24 @@ import AddBackend from "./AddBackend.vue";
 import ArrowLeftIcon from "./icons/ArrowLeftIcon.vue";
 
 import type { IPeerInfo } from "@/interfaces";
-import { friendsPeerInfo, peersInfo, FriendStatus, p2pStage } from "@/store";
+import {
+  friendsPeerInfo,
+  peersInfo,
+  FriendStatus,
+  p2pStage,
+  selfID,
+} from "@/store";
 
 function resetStage() {
   p2pStage.value = null;
 }
+
+const selfIDText = computed(() => {
+  if (selfID.value == "") {
+    return "无法连接后端以获取 ID";
+  }
+  return selfID.value.slice(0, 7) + "...";
+});
 
 const selectedNodeID = ref("");
 
