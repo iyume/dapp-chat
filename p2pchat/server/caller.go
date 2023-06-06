@@ -19,6 +19,9 @@ type Caller interface {
 // may implemented by codegen
 
 var actions = map[string]func(b *api.Backend, p Getter) map[string]any{
+	"get_self_id": func(b *api.Backend, p Getter) map[string]any {
+		return OK(b.SelfID().String())
+	},
 	"get_peers_info": func(b *api.Backend, p Getter) map[string]any {
 		return OK(b.PeersInfo())
 	},

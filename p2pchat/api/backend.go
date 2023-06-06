@@ -75,17 +75,9 @@ func NewBackend(config BackendConfig) *Backend {
 	return backend
 }
 
-func (b *Backend) NodeID() enode.ID {
-	ln := b.server.LocalNode()
-	if ln == nil {
-		log.Panicln("backend is not started")
-	}
-	return ln.ID()
-}
-
 // SessionID returns p2p session ID for database, empty bytes if nodeID equals to self ID
 func (b *Backend) SessionID(nodeID [32]byte) [32]byte {
-	return utils.GetSessionID(b.NodeID(), nodeID)
+	return utils.GetSessionID(b.SelfID(), nodeID)
 }
 
 func (b *Backend) Stop() {
@@ -126,14 +118,12 @@ func (b *Backend) SendP2PMessage(nodeID [32]byte, message types.Message) error {
 	if message.Empty() {
 		return errors.New("message is empty")
 	}
-	if bytes.Equal(b.NodeID().Bytes(), nodeID[:]) {
+	if bytes.Equal(b.SelfID().Bytes(), nodeID[:]) {
 		return errors.New("cannot send message to self")
 	}
 	p := b.findPeer(nodeID)
 	if p == nil {
-		msg := fmt.Sprintf("connection to %s is not established", truncateBytes(nodeID))
-		log.Println(msg)
-		return errors.New(msg)
+		return fmt.Errorf("connection to %s is not established", truncateBytes(nodeID))
 	}
 	log.Printf("sent p2p message '%s' to node %s\n", message.ExtractPlaintext(), truncateBytes(nodeID))
 	event := types.MakeP2PMessageEvent(message)
@@ -142,8 +132,8 @@ func (b *Backend) SendP2PMessage(nodeID [32]byte, message types.Message) error {
 	}
 	// Message is sent properly, but we don't know if message is properly received
 	// TODO: fix it
-	event.UserID = b.NodeID().String()
-	db.AddP2PMessageEvent(utils.GetSessionID(b.NodeID(), nodeID), event)
+	event.UserID = b.SelfID().String()
+	db.AddP2PMessageEvent(utils.GetSessionID(b.SelfID(), nodeID), event)
 	return nil
 }
 
@@ -154,6 +144,14 @@ type peersInfo struct {
 	Active     bool   `json:"active"`
 	Version    uint   `json:"version"`
 	RemoteAddr string `json:"remote_addr"`
+}
+
+func (b *Backend) SelfID() enode.ID {
+	ln := b.server.LocalNode()
+	if ln == nil {
+		log.Panicln("backend is not started")
+	}
+	return ln.ID()
 }
 
 func (b *Backend) PeersInfo() *[]peersInfo {

@@ -43,7 +43,7 @@ func p2pchat(ctx *cli.Context) error {
 		backend.Stop()
 		log.Println("backend closed")
 	}()
-	if err := db.Init(config.DataDir, backend.NodeID()); err != nil {
+	if err := db.Init(config.DataDir, backend.SelfID()); err != nil {
 		log.Panicln(err)
 	}
 	httpserver, _, err := server.StartHTTPServer(backend, config.Http)

@@ -15,6 +15,8 @@ type Peer struct {
 
 	closed bool
 	term   chan struct{} // received when proto Run is down
+
+	// TODO: message queue
 }
 
 func NewPeer(p *p2p.Peer, rw p2p.MsgReadWriter, version uint) *Peer {
