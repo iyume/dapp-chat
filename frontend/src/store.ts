@@ -111,6 +111,18 @@ export async function actionGetP2PSession(nodeID: string) {
   }
 }
 
+export async function actionSendP2PMessage(nodeID: string, message: string) {
+  try {
+    const resp = await api.sendP2PMessage(nodeID, message);
+    if (resp.status != 200 || resp.data.retcode != 0) {
+      throw "request failed";
+    }
+    actionGetP2PSession(nodeID);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 // TODO: scheduler
 actionGetSelfID();
 actionGetFriends();

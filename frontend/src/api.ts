@@ -34,7 +34,7 @@ export const api = {
   },
   async sendP2PMessage(node_id: string, message: string) {
     // TODO: message json struct; send message by user id
-    p2pApiRequest.value.get("/send_p2p_message", {
+    return p2pApiRequest.value.get<IResp<null>>("/send_p2p_message", {
       params: { node_id, message },
     });
   },

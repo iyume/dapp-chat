@@ -32,12 +32,33 @@
         </div>
       </template>
     </div>
-    <div class="flex-none overflow-hidden px-4">
+    <div class="flex-none overflow-hidden px-4 py-2 relative">
       <!-- TODO: auto resize textarea to fit content -->
       <textarea
+        v-model="inputMessage"
+        @keypress.enter="sendMessageByEnter"
         class="textarea h-16 resize-none w-full bg-base-300 no-scrollbar leading-5"
         placeholder="输入消息发送"
       ></textarea>
+      <button
+        class="btn btn-square btn-primary absolute right-6 top-4"
+        @click="sendMessage"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-6 h-6"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
+          />
+        </svg>
+      </button>
     </div>
   </div>
 </template>
@@ -48,6 +69,7 @@ import { computed, ref } from "vue";
 import type { IP2PSession } from "@/interfaces";
 import {
   actionGetP2PSession,
+  actionSendP2PMessage,
   p2pSessions,
   selfID,
   friendsPeerInfo,
@@ -104,4 +126,22 @@ const userRemark = computed<string>(() => {
   }
   return friendInfo.value.remark;
 });
+
+const inputMessage = ref("");
+
+function sendMessage() {
+  const message = inputMessage.value;
+  inputMessage.value = "";
+  actionSendP2PMessage(props.nodeId, message);
+}
+
+function sendMessageByEnter(_: KeyboardEvent) {
+  // TODO: ignore shift+enter
+  const message = inputMessage.value;
+  // @keypress.enter 无法完全清除 text，会留下一个 \n 字符，所以增加一点延迟
+  setTimeout(() => {
+    inputMessage.value = "";
+  }, 25);
+  actionSendP2PMessage(props.nodeId, message);
+}
 </script>
