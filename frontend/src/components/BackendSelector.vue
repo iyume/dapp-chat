@@ -8,7 +8,7 @@
       tabindex="0"
       class="dropdown-content menu p-2 shadow bg-base-100 rounded-box backdrop-blur bg-opacity-50 z-20 whitespace-nowrap"
     >
-      <li v-for="b in backends" @click="currentBackend = b.addr">
+      <li v-for="b in backends" @click="setBackend(b.addr)">
         <button class="flex items-center gap-x-1 text-sm px-2">
           <MiniCheckIcon />{{ b.addr }}
         </button>
@@ -24,5 +24,5 @@
 <script setup lang="ts">
 import MiniCheckIcon from "./icons/MiniCheckIcon.vue";
 import MiniPlusIcon from "./icons/MiniPlusIcon.vue";
-import { currentBackend, backends, p2pStage } from "@/store";
+import { currentBackend, setBackend, backends, p2pStage } from "@/store";
 </script>

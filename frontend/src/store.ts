@@ -6,21 +6,55 @@ import { api } from "./api";
 
 export const currentPage = ref<"main" | "other">("main");
 export const p2pStage = ref<"add_backend" | "add_friend" | null>(null);
+
+export const selfID = ref("");
 export const friendsInfo = ref<{ [nodeID: string]: IFriendInfo }>({});
 export const peersInfo = ref<{ [nodeID: string]: IPeerInfo }>({});
-export const selfID = ref("");
 /**
  * Map node ID to p2p session ref. This is shallow ref and it should be entirely updated.
  */
-export const p2pSessions: { [key: string]: Ref<IP2PSession> } = {};
+export var p2pSessions: { [key: string]: Ref<IP2PSession> } = {};
 
-export const currentBackend = useLocalStorage("currentBackend", "");
+const _currentBackend = useLocalStorage("currentBackend", "");
+export const currentBackend = computed(() => _currentBackend.value);
 export const backends = useLocalStorage<{
   [addr: string]: {
     addr: string;
     token: string;
   };
 }>("backends", {});
+
+export async function resetBackendStores() {
+  // in future, we could cache stores for each backends
+  selfID.value = "";
+  friendsInfo.value = {};
+  peersInfo.value = {};
+  p2pSessions = {};
+  await Promise.all([
+    actionGetSelfID(),
+    actionGetFriends(),
+    actionGetPeersInfo(),
+  ]);
+}
+
+if (_currentBackend.value != "") {
+  resetBackendStores();
+}
+
+export async function setBackend(addr: string) {
+  if (addr == "") {
+    _currentBackend.value = "";
+    return;
+  }
+  if (!(addr in backends.value)) {
+    console.error(addr);
+    console.error(backends.value);
+    console.error(`cannot set backend ${addr} without configuration`);
+    return;
+  }
+  _currentBackend.value = addr;
+  await resetBackendStores();
+}
 
 export enum FriendStatus {
   Connected,
@@ -124,6 +158,3 @@ export async function actionSendP2PMessage(nodeID: string, message: string) {
 }
 
 // TODO: scheduler
-actionGetSelfID();
-actionGetFriends();
-actionGetPeersInfo();

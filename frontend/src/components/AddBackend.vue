@@ -57,7 +57,7 @@ import { ref, type PropType } from "vue";
 
 import WarningIcon from "./icons/WarningIcon.vue";
 import ErrorIcon from "./icons/ErrorIcon.vue";
-import { backends, currentBackend } from "@/store";
+import { backends, setBackend, currentBackend } from "@/store";
 
 const props = defineProps({
   // as unknown as () => void
@@ -83,7 +83,7 @@ const delAddr = ref(Object.keys(backends.value)[0]);
 function deleteBackend() {
   delete backends.value[delAddr.value];
   if (delAddr.value == currentBackend.value) {
-    currentBackend.value = "";
+    setBackend("");
   }
 }
 </script>
