@@ -40,11 +40,9 @@ func TestInit(t *testing.T) {
 	assert.Panics(func() { GetFriendIDs() })
 	nodeID := [32]byte([]byte(
 		"0076db4fee435414c8897271d126f0b356a5087e43e3cb5df12df73c482a6a2a"))
-	if err := Init(testDBFile, nodeID); err != nil {
-		log.Panicln(err)
-	}
-	defer closeCleanly(db.DB)
-	assert.ElementsMatch([]dbdata{{key: localKey, value: nodeID[:]}}, dumpDB(db.DB))
+	Init(testDBFile, nodeID)
+	defer closeCleanly(getDatabase().DB)
+	assert.ElementsMatch([]dbdata{{key: localKey, value: nodeID[:]}}, dumpDB(getDatabase().DB))
 }
 
 func TestFriendCRUD(t *testing.T) {
@@ -52,10 +50,8 @@ func TestFriendCRUD(t *testing.T) {
 
 	f1ID, f1Remark := [32]byte([]byte("ca9897c18db6a38d7a417c42380837e9426ff3171664a612e35c7ea15b70fb9f")), "friend1"
 	f2ID, f2Remark := [32]byte([]byte("309844745a5d419c24d7ebd775bc5bc6b7791eaf45a393d86cacca5d489e22e4")), "friend2"
-	if err := Init(testDBFile, [32]byte{}); err != nil {
-		log.Panicln(err)
-	}
-	defer closeCleanly(db.DB)
+	Init(testDBFile, [32]byte{})
+	defer closeCleanly(getDatabase().DB)
 	assert.Equal(map[[32]byte]friendInfo{}, GetFriends())
 	AddFriend(f1ID, f1Remark)
 	assert.Equal(map[[32]byte]friendInfo{f1ID: {Remark: f1Remark}}, GetFriends())

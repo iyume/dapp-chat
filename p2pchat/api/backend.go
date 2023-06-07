@@ -81,8 +81,9 @@ func (b *Backend) SessionID(nodeID [32]byte) [32]byte {
 }
 
 func (b *Backend) Stop() {
+	// p2p.Server.Stop() will stucks and DiscQuitting has some problems
 	for _, p := range b.server.Peers() {
-		p.Disconnect(p2p.DiscQuitting)
+		p.Disconnect(p2p.DiscRequested)
 	}
 }
 

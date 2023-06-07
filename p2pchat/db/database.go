@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sync"
 
 	"github.com/iyume/dapp-chat/p2pchat/types"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -34,48 +35,59 @@ func newP2PSession() *p2pSession {
 type Database struct {
 	*leveldb.DB
 
-	inited bool
+	inited   bool
+	initOnce sync.Once
 }
 
-var db = new(Database)
-var ErrDBNotInit = errors.New("database not initialized")
+var _ldb = new(Database)
+var ErrDBNotInit = errors.New("database not initialize")
+
+func getDatabase() *Database {
+	if !_ldb.inited {
+		panic(ErrDBNotInit)
+	}
+	return _ldb
+}
 
 func newPersistentDB(path string) *leveldb.DB {
 	db, err := leveldb.OpenFile(path, nil)
 	if err != nil {
-		log.Panicln(err)
+		panic(err)
 	}
 	return db
 }
 
-// Register database
-func Init(path string, localNodeID [32]byte) error {
-	*db = Database{DB: newPersistentDB(path)}
-	exists, err := db.Has(localKey, nil)
-	if err != nil {
-		return err
-	}
-	if exists {
-		data, err := db.Get(localKey, nil)
+// Register leveldb database
+func Init(path string, localNodeID [32]byte) {
+	_ldb.initOnce.Do(func() {
+		ldb := newPersistentDB(path)
+		exists, err := ldb.Has(localKey, nil)
 		if err != nil {
-			return err
+			panic(err)
 		}
-		if !(bytes.Equal(localNodeID[:], data)) {
-			return fmt.Errorf("database has been already initialized with Node ID %x", data)
+		if exists {
+			data, err := ldb.Get(localKey, nil)
+			if err != nil {
+				panic(err)
+			}
+			if !(bytes.Equal(localNodeID[:], data)) {
+				panic(fmt.Sprintf(
+					"database has been already initialized with Node ID %x", data,
+				))
+			}
+		} else {
+			if err := ldb.Put(localKey, localNodeID[:], nil); err != nil {
+				panic(err)
+			}
 		}
-	} else {
-		if err := db.Put(localKey, localNodeID[:], nil); err != nil {
-			return err
-		}
-	}
-	db.inited = true
-	return nil
+		_ldb.DB = ldb
+		_ldb.inited = true
+		log.Printf("leveldb initialized at %s with Node ID %x\n", path, localNodeID)
+	})
 }
 
 func GetFriendIDs() [][32]byte {
-	if !db.inited {
-		log.Panicln(ErrDBNotInit)
-	}
+	db := getDatabase()
 	fIDs := [][32]byte{}
 	iter := db.NewIterator(util.BytesPrefix(friendPrefix), nil)
 	defer iter.Release()
@@ -90,9 +102,7 @@ func GetFriendIDs() [][32]byte {
 }
 
 func HasFriend(nodeID [32]byte) bool {
-	if !db.inited {
-		log.Panicln(ErrDBNotInit)
-	}
+	db := getDatabase()
 	// ids := GetFriendIDs()
 	// return slices.Contains(*ids, nodeID)
 	exist, err := db.Has(friendKey(nodeID), nil)
@@ -104,9 +114,7 @@ func HasFriend(nodeID [32]byte) bool {
 }
 
 func GetFriends() map[[32]byte]friendInfo {
-	if !db.inited {
-		log.Panicln(ErrDBNotInit)
-	}
+	db := getDatabase()
 	friends := map[[32]byte]friendInfo{}
 	iter := db.NewIterator(util.BytesPrefix(friendPrefix), nil)
 	defer iter.Release()
@@ -128,9 +136,7 @@ func GetFriends() map[[32]byte]friendInfo {
 
 // Add new friend with associated info
 func AddFriend(nodeID [32]byte, remark string) {
-	if !db.inited {
-		log.Panicln(ErrDBNotInit)
-	}
+	db := getDatabase()
 	data, err := json.Marshal(friendInfo{Remark: remark})
 	if err != nil {
 		log.Println(err)
@@ -144,9 +150,7 @@ func AddFriend(nodeID [32]byte, remark string) {
 }
 
 func DeleteFriend(nodeID [32]byte) {
-	if !db.inited {
-		log.Panicln(ErrDBNotInit)
-	}
+	db := getDatabase()
 	if err := db.Delete(friendKey(nodeID), nil); err != nil {
 		log.Println(err)
 		return
@@ -155,9 +159,7 @@ func DeleteFriend(nodeID [32]byte) {
 
 // This returns non-nil value
 func GetP2PSession(sessionID [32]byte) *p2pSession {
-	if !db.inited {
-		log.Panicln(ErrDBNotInit)
-	}
+	db := getDatabase()
 	data, err := db.Get(p2pSessionKey(sessionID), nil)
 	if err != nil {
 		log.Println(err)
@@ -172,9 +174,7 @@ func GetP2PSession(sessionID [32]byte) *p2pSession {
 }
 
 func PutP2PSession(sessionID [32]byte, session *p2pSession) {
-	if !db.inited {
-		log.Panicln(ErrDBNotInit)
-	}
+	db := getDatabase()
 	data, err := json.Marshal(session)
 	if err != nil {
 		log.Println(err)
@@ -188,9 +188,6 @@ func PutP2PSession(sessionID [32]byte, session *p2pSession) {
 
 // Add appends p2p message event into session, creates session if not exists.
 func AddP2PMessageEvent(sessionID [32]byte, event types.P2PMessageEvent) {
-	if !db.inited {
-		log.Panicln(ErrDBNotInit)
-	}
 	if event.UserID == "" {
 		log.Println("missing UserID field")
 		return
