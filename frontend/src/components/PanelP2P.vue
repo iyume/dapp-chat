@@ -38,7 +38,7 @@
         >
           <div
             class="flex gap-x-4 py-0.5 rounded w-full"
-            :class="{ 'bg-base-300': f.node_id == selectedNodeID }"
+            :class="{ 'bg-base-300': f.node_id == chattingNodeID }"
             @click="selectNodeID(f.node_id)"
           >
             <div
@@ -76,7 +76,7 @@
         >
           <div
             class="flex gap-x-4 py-0.5 rounded w-full"
-            :class="{ 'bg-base-300': p.node_id == selectedNodeID }"
+            :class="{ 'bg-base-300': p.node_id == chattingNodeID }"
             @click="selectNodeID(p.node_id)"
           >
             <div class="flex-1 min-w-0">
@@ -111,7 +111,7 @@
           ></AddBackend>
           <div v-else-if="p2pStage == 'add_friend'"></div>
         </div>
-        <Messager v-else-if="selectedNodeID != ''" :node-id="selectedNodeID" />
+        <Messager v-else-if="chattingNodeID != ''" :node-id="chattingNodeID" />
         <div v-else>选择节点以发送消息</div>
       </div>
       <div class="flex-none h-4"></div>
@@ -138,6 +138,7 @@ import {
   FriendStatus,
   p2pStage,
   selfID,
+  chattingNodeID,
 } from "@/store";
 
 function resetStage() {
@@ -151,10 +152,8 @@ const selfIDText = computed(() => {
   return selfID.value.slice(0, 7) + "...";
 });
 
-const selectedNodeID = ref("");
-
 function selectNodeID(nodeID: string) {
-  selectedNodeID.value = nodeID;
+  chattingNodeID.value = nodeID;
   p2pStage.value = null;
 }
 

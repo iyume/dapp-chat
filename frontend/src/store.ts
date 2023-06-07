@@ -6,6 +6,7 @@ import { api } from "./api";
 
 export const currentPage = ref<"main" | "other">("main");
 export const p2pStage = ref<"add_backend" | "add_friend" | null>(null);
+export const chattingNodeID = ref("");
 
 export const selfID = ref("");
 export const friendsInfo = ref<{ [nodeID: string]: IFriendInfo }>({});
@@ -53,6 +54,7 @@ export async function setBackend(addr: string) {
     return;
   }
   _currentBackend.value = addr;
+  chattingNodeID.value = "";
   await resetBackendStores();
 }
 
