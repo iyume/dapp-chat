@@ -73,6 +73,7 @@ function addBackend() {
   if (addr.value == "" || token.value == "") {
     errors.value.push("表单不能为空");
     setTimeout(() => errors.value.shift(), 2000);
+    return;
   }
   backends.value[addr.value] = { addr: addr.value, token: token.value };
   addr.value = token.value = "";

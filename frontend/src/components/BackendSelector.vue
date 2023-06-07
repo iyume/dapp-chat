@@ -1,6 +1,6 @@
 <template>
   <div class="dropdown">
-    <label tabindex="0" class="btn btn-sm btn-primary whitespace-nowrap">
+    <label tabindex="0" class="btn btn-sm btn-primary">
       <!-- TODO: sche check backend status and show -->
       后端: {{ currentBackend || "未选择" }}
     </label>

@@ -32,7 +32,10 @@
             </button>
           </div>
         </li>
-        <li v-for="f in connInfo.friends" class="w-full">
+        <li
+          v-for="f in connInfo.friends"
+          class="w-full hover:bg-base-200 rounded cursor-pointer"
+        >
           <div
             class="flex gap-x-4 py-0.5 rounded w-full"
             :class="{ 'bg-base-300': f.node_id == selectedNodeID }"
@@ -67,7 +70,10 @@
         <li class="menu-title">
           <span>节点列表</span>
         </li>
-        <li v-for="p in connInfo.peers" class="w-full">
+        <li
+          v-for="p in connInfo.peers"
+          class="w-full hover:bg-base-200 rounded cursor-pointer"
+        >
           <div
             class="flex gap-x-4 py-0.5 rounded w-full"
             :class="{ 'bg-base-300': p.node_id == selectedNodeID }"
