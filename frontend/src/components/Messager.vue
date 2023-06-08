@@ -133,13 +133,10 @@ function sendMessage() {
   actionSendP2PMessage(props.nodeId, message);
 }
 
-function sendMessageByEnter(_: KeyboardEvent) {
-  // TODO: ignore shift+enter
-  const message = inputMessage.value;
-  // @keypress.enter 无法完全清除 text，会留下一个 \n 字符，所以增加一点延迟
-  setTimeout(() => {
-    inputMessage.value = "";
-  }, 25);
-  actionSendP2PMessage(props.nodeId, message);
+function sendMessageByEnter(e: KeyboardEvent) {
+  if (!e.getModifierState("Shift")) {
+    e.preventDefault();
+    sendMessage();
+  }
 }
 </script>
