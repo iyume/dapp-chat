@@ -88,13 +88,11 @@ const selectedSession = computed<IP2PSession>(() => {
     // no chat selected, should not be render
     return { events: [] };
   }
-  if (id in p2pSessions) {
-    return p2pSessions[id].value;
+  if (!(id in p2pSessions.value)) {
+    // task done and responsively updates
+    actionGetP2PSession(id);
   }
-  const newref = ref({ events: [] });
-  p2pSessions[id] = newref;
-  actionGetP2PSession(id);
-  return newref.value;
+  return p2pSessions.value[id];
 });
 
 // undefined indicates that this is anonymous chat

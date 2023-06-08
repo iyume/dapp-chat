@@ -14,7 +14,7 @@ export const peersInfo = ref<{ [nodeID: string]: IPeerInfo }>({});
 /**
  * Map node ID to p2p session ref. This is shallow ref and it should be entirely updated.
  */
-export var p2pSessions: { [key: string]: Ref<IP2PSession> } = {};
+export var p2pSessions = ref<{ [nodeID: string]: IP2PSession }>({});
 
 const _currentBackend = useLocalStorage("currentBackend", "");
 export const currentBackend = computed(() => _currentBackend.value);
@@ -30,7 +30,7 @@ export async function resetBackendStores() {
   selfID.value = "";
   friendsInfo.value = {};
   peersInfo.value = {};
-  p2pSessions = {};
+  p2pSessions.value = {};
   await Promise.all([
     actionGetSelfID(),
     actionGetFriends(),
@@ -138,10 +138,7 @@ export async function actionGetP2PSession(nodeID: string) {
     if (resp.status != 200 || resp.data.retcode != 0) {
       throw "request failed";
     }
-    if (nodeID in p2pSessions) {
-      p2pSessions[nodeID].value = resp.data.data;
-    }
-    p2pSessions[nodeID] = ref(resp.data.data);
+    p2pSessions.value[nodeID] = resp.data.data;
   } catch (error) {
     console.error(error);
   }
