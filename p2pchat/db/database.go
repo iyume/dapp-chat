@@ -57,33 +57,35 @@ func newPersistentDB(path string) *leveldb.DB {
 	return db
 }
 
-// Register leveldb database
-func Init(path string, localNodeID [32]byte) {
-	_ldb.initOnce.Do(func() {
-		ldb := newPersistentDB(path)
-		exists, err := ldb.Has(localKey, nil)
+func doInit(path string, localNodeID [32]byte) {
+	ldb := newPersistentDB(path)
+	exists, err := ldb.Has(localKey, nil)
+	if err != nil {
+		panic(err)
+	}
+	if exists {
+		data, err := ldb.Get(localKey, nil)
 		if err != nil {
 			panic(err)
 		}
-		if exists {
-			data, err := ldb.Get(localKey, nil)
-			if err != nil {
-				panic(err)
-			}
-			if !(bytes.Equal(localNodeID[:], data)) {
-				panic(fmt.Sprintf(
-					"database has been already initialized with Node ID %x", data,
-				))
-			}
-		} else {
-			if err := ldb.Put(localKey, localNodeID[:], nil); err != nil {
-				panic(err)
-			}
+		if !(bytes.Equal(localNodeID[:], data)) {
+			panic(fmt.Sprintf(
+				"database has been already initialized with Node ID %x", data,
+			))
 		}
-		_ldb.DB = ldb
-		_ldb.inited = true
-		log.Printf("leveldb initialized at %s with Node ID %x\n", path, localNodeID)
-	})
+	} else {
+		if err := ldb.Put(localKey, localNodeID[:], nil); err != nil {
+			panic(err)
+		}
+	}
+	_ldb.DB = ldb
+	_ldb.inited = true
+	log.Printf("leveldb initialized at %s with Node ID %x\n", path, localNodeID)
+}
+
+// Register leveldb database
+func Init(path string, localNodeID [32]byte) {
+	_ldb.initOnce.Do(func() { doInit(path, localNodeID) })
 }
 
 func GetFriendIDs() [][32]byte {
