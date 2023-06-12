@@ -18,19 +18,23 @@
         {{ connBadgeTable[status].label }}
       </div>
       <div class="divider"></div>
-      <template v-for="e in selectedSession.events">
-        <div
-          class="chat"
-          :class="e.user_id == selfID ? 'chat-end' : 'chat-start'"
-        >
-          <div class="chat-header">
-            {{ e.user_id == selfID ? "me" : userRemark }}
-            <!-- FIXME: implement utils.sentTimeChat -->
-            <time class="text-xs opacity-50">{{ e.time }}</time>
+      <div class="h-0">
+        <template v-for="e in selectedSession.events">
+          <div
+            class="chat"
+            :class="e.user_id == selfID ? 'chat-end' : 'chat-start'"
+          >
+            <div class="chat-header">
+              {{ e.user_id == selfID ? "me" : userRemark }}
+              <!-- FIXME: implement utils.sentTimeChat -->
+              <time class="text-xs opacity-50">{{ e.time }}</time>
+            </div>
+            <div class="chat-bubble">
+              {{ utils.extractPlainText(e.message) }}
+            </div>
           </div>
-          <div class="chat-bubble">{{ utils.extractPlainText(e.message) }}</div>
-        </div>
-      </template>
+        </template>
+      </div>
     </div>
     <div class="flex-none overflow-hidden px-4 py-2 relative">
       <!-- TODO: auto resize textarea to fit content -->
