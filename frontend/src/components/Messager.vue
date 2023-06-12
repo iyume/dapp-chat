@@ -18,19 +18,23 @@
         {{ connBadgeTable[status].label }}
       </div>
       <div class="divider"></div>
-      <template v-for="e in selectedSession.events">
-        <div
-          class="chat"
-          :class="e.user_id == selfID ? 'chat-end' : 'chat-start'"
-        >
-          <div class="chat-header">
-            {{ e.user_id == selfID ? "me" : userRemark }}
-            <!-- FIXME: implement utils.sentTimeChat -->
-            <time class="text-xs opacity-50">{{ e.time }}</time>
+      <div class="h-0">
+        <template v-for="e in selectedSession.events">
+          <div
+            class="chat"
+            :class="e.user_id == selfID ? 'chat-end' : 'chat-start'"
+          >
+            <div class="chat-header">
+              {{ e.user_id == selfID ? "me" : userRemark }}
+              <!-- FIXME: implement utils.sentTimeChat -->
+              <time class="text-xs opacity-50">{{ e.time }}</time>
+            </div>
+            <div class="chat-bubble">
+              {{ utils.extractPlainText(e.message) }}
+            </div>
           </div>
-          <div class="chat-bubble">{{ utils.extractPlainText(e.message) }}</div>
-        </div>
-      </template>
+        </template>
+      </div>
     </div>
     <div class="flex-none overflow-hidden px-4 py-2 relative">
       <!-- TODO: auto resize textarea to fit content -->
@@ -133,13 +137,10 @@ function sendMessage() {
   actionSendP2PMessage(props.nodeId, message);
 }
 
-function sendMessageByEnter(_: KeyboardEvent) {
-  // TODO: ignore shift+enter
-  const message = inputMessage.value;
-  // @keypress.enter 无法完全清除 text，会留下一个 \n 字符，所以增加一点延迟
-  setTimeout(() => {
-    inputMessage.value = "";
-  }, 25);
-  actionSendP2PMessage(props.nodeId, message);
+function sendMessageByEnter(e: KeyboardEvent) {
+  if (!e.getModifierState("Shift")) {
+    e.preventDefault();
+    sendMessage();
+  }
 }
 </script>
