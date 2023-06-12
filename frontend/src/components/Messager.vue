@@ -1,24 +1,24 @@
 <template>
   <div class="flex flex-col h-full">
-    <div class="h-full overflow-y-scroll px-4">
-      <div class="h-8"></div>
-      <h2 class="text-3xl font-extrabold">
-        {{ userRemark }}
-      </h2>
-      <div class="h-2"></div>
-      <span class="text-sm flex-1 block min-w-0 shrink truncate opacity-60">
-        <!-- FIXME: shrink not work -->
-        0x{{ nodeId }}
-      </span>
-      <div class="h-4"></div>
-      <div
-        class="badge whitespace-nowrap"
-        :class="connBadgeTable[status].badge"
-      >
-        {{ connBadgeTable[status].label }}
-      </div>
-      <div class="divider"></div>
+    <div class="flex-1 overflow-y-scroll px-4">
       <div class="h-0">
+        <div class="h-8"></div>
+        <h2 class="text-3xl font-extrabold">
+          {{ userRemark }}
+        </h2>
+        <div class="h-2"></div>
+        <span class="text-sm min-w-0 truncate opacity-60">
+          <!-- FIXME: shrink not work -->
+          0x{{ nodeId }}
+        </span>
+        <div class="h-4"></div>
+        <div
+          class="badge whitespace-nowrap"
+          :class="connBadgeTable[status].badge"
+        >
+          {{ connBadgeTable[status].label }}
+        </div>
+        <div class="divider"></div>
         <template v-for="e in selectedSession.events">
           <div
             class="chat"
