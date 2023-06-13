@@ -29,7 +29,8 @@ func NewPeer(p *p2p.Peer, rw p2p.MsgReadWriter, version uint) *Peer {
 }
 
 func (p *Peer) Close() {
-	p.term <- struct{}{}
+	// add this on message queue
+	// p.term <- struct{}{}
 	p.closed = true
 }
 
