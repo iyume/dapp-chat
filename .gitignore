@@ -74,3 +74,5 @@ yarn-error.log
 /nodes
 /chatdata
 /config-p2p.ini
+# the geth config file
+/config.toml

@@ -76,8 +76,8 @@ print("#3", "436e3172a545d485587c0e75b18b1e0759d9154396a15511a34d23200c4d2c89")
 import os
 import time
 
-# kill p3 after connected to test for inactive node
-time.sleep(5)
+# kill p3 after connected for inactive node test
+time.sleep(10)
 p3.terminate()
 retcode = p3.wait()
 print("retcode", retcode)
