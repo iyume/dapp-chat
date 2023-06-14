@@ -2,12 +2,15 @@ package db
 
 import (
 	"bytes"
+	"crypto/ecdsa"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"sync"
 
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/iyume/dapp-chat/p2pchat/types"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -22,6 +25,8 @@ type friendInfo struct {
 }
 
 type p2pSession struct {
+	UserID enode.ID                `json:"_user_id"`
+	Pubkey []byte                  `json:"_pubkey"`
 	Events []types.P2PMessageEvent `json:"events"`
 }
 
@@ -88,6 +93,7 @@ func Init(path string, localNodeID [32]byte) {
 	_ldb.initOnce.Do(func() { doInit(path, localNodeID) })
 }
 
+// This returns non-nil value.
 func GetFriendIDs() [][32]byte {
 	db := getDatabase()
 	fIDs := [][32]byte{}
@@ -98,7 +104,7 @@ func GetFriendIDs() [][32]byte {
 	}
 	if err := iter.Error(); err != nil {
 		log.Println(err)
-		return nil
+		return [][32]byte{}
 	}
 	return fIDs
 }
@@ -115,6 +121,7 @@ func HasFriend(nodeID [32]byte) bool {
 	return exist
 }
 
+// Get all friends info. Returns nil if any error occurs
 func GetFriends() map[[32]byte]friendInfo {
 	db := getDatabase()
 	friends := map[[32]byte]friendInfo{}
@@ -159,7 +166,7 @@ func DeleteFriend(nodeID [32]byte) {
 	}
 }
 
-// This returns non-nil value
+// Get specific p2p session. Returns nil if any error occurs
 func GetP2PSession(sessionID [32]byte) *p2pSession {
 	db := getDatabase()
 	data, err := db.Get(p2pSessionKey(sessionID), nil)
@@ -175,6 +182,27 @@ func GetP2PSession(sessionID [32]byte) *p2pSession {
 	return session
 }
 
+// Get all p2p sessions. Returns nil if any error occurs
+func GetP2PSessions() []*p2pSession {
+	db := getDatabase()
+	sessions := []*p2pSession{}
+	iter := db.NewIterator(util.BytesPrefix(p2pSessionPrefix), nil)
+	defer iter.Release()
+	for iter.Next() {
+		session := new(p2pSession)
+		if err := json.Unmarshal(iter.Value(), session); err != nil {
+			log.Println(errors.Join(err, fmt.Errorf("cannot unmarshal value on key '%s'", iter.Key())))
+			return nil
+		}
+		sessions = append(sessions, session)
+	}
+	if err := iter.Error(); err != nil {
+		log.Println(err)
+		return nil
+	}
+	return sessions
+}
+
 func PutP2PSession(sessionID [32]byte, session *p2pSession) {
 	db := getDatabase()
 	data, err := json.Marshal(session)
@@ -188,6 +216,19 @@ func PutP2PSession(sessionID [32]byte, session *p2pSession) {
 	}
 }
 
+func NotateP2PSession(sessionID [32]byte, userID enode.ID, pubkey *ecdsa.PublicKey) {
+	session := GetP2PSession(sessionID)
+	if session == nil {
+		log.Println("cannot get p2p session")
+		return
+	}
+	if session.Pubkey == nil {
+		session.Pubkey = crypto.FromECDSAPub(pubkey)
+		session.UserID = userID
+		PutP2PSession(sessionID, session)
+	}
+}
+
 // Add appends p2p message event into session, creates session if not exists.
 func AddP2PMessageEvent(sessionID [32]byte, event types.P2PMessageEvent) {
 	if event.UserID == "" {
@@ -195,6 +236,10 @@ func AddP2PMessageEvent(sessionID [32]byte, event types.P2PMessageEvent) {
 		return
 	}
 	session := GetP2PSession(sessionID)
+	if session == nil {
+		log.Println("cannot get p2p session")
+		return
+	}
 	session.Events = append(session.Events, event)
 	PutP2PSession(sessionID, session)
 }

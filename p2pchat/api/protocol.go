@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/ethereum/go-ethereum/p2p"
+	"github.com/iyume/dapp-chat/p2pchat/db"
 )
 
 const ProtocolName = "p2pchat"
@@ -27,6 +28,7 @@ func MakeProtocols(backend *Backend) []p2p.Protocol {
 		Version: ProtocolVersion,
 		Length:  protocolLength,
 		Run: func(peer *p2p.Peer, rw p2p.MsgReadWriter) error {
+			db.NotateP2PSession(backend.SessionID(peer.ID()), peer.ID(), peer.Node().Pubkey())
 			p := NewPeer(peer, rw, ProtocolVersion)
 			defer p.Close()
 			backend.addPeer(p)

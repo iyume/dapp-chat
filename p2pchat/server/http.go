@@ -105,7 +105,7 @@ func StartHTTPServer(backend *api.Backend, config HTTPConfig) (*http.Server, net
 	}
 	token := config.Token
 	if token == "" {
-		token = hex.EncodeToString(utils.GenerateToken(16))
+		token = hex.EncodeToString(utils.RandomBytes(16))
 	}
 	handler = NewHTTPStack(handler, token)
 	srv := &http.Server{

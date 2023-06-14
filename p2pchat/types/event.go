@@ -13,6 +13,7 @@ const (
 // 基础事件类型
 type Event struct {
 	Time       string `json:"time"`        // RFC3339Nano format
+	TimeISO    string `json:"time_iso"`    // RFC3339 format
 	Type       string `json:"type"`        // message or other ob12 type
 	DetailType string `json:"detail_type"` // p2p or channel
 }
@@ -33,10 +34,12 @@ type P2PMessageEvent struct {
 
 // MakeP2PMessageEvent do not assiocate with anyone, it should just be sent and handled by receiver
 func MakeP2PMessageEvent(message Message) P2PMessageEvent {
+	now := time.Now()
 	return P2PMessageEvent{
 		MessageEvent: MessageEvent{
 			Event: Event{
-				Time:       time.Now().Format(time.RFC3339Nano),
+				Time:       now.Format(time.RFC3339Nano),
+				TimeISO:    now.Format(time.RFC3339),
 				Type:       "message",
 				DetailType: "p2p",
 			},

@@ -167,3 +167,11 @@ func (b *Backend) PeersInfo() *[]peersInfo {
 	}
 	return &infos
 }
+
+func (b *Backend) Encrypt(pubkey *ecdsa.PublicKey, plaintext []byte) ([]byte, error) {
+	return utils.Encrypt(b.key, pubkey, plaintext)
+}
+
+func (b *Backend) Decrypt(pubkey *ecdsa.PublicKey, ciphertext []byte) ([]byte, error) {
+	return utils.Decrypt(b.key, pubkey, ciphertext)
+}

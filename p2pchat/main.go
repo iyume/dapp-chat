@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/iyume/dapp-chat/p2pchat/api"
 	"github.com/iyume/dapp-chat/p2pchat/config"
 	"github.com/iyume/dapp-chat/p2pchat/db"
@@ -37,13 +38,13 @@ func p2pchat(ctx *cli.Context) error {
 		)
 	}
 	config := config.LoadINIConfig(cfgfile)
+	db.Init(config.DataDir, enode.PubkeyToIDV4(&config.Backend.Key.PublicKey))
 	backend := api.NewBackend(config.Backend)
 	backend.Start()
 	defer func() {
 		backend.Stop()
 		log.Println("backend closed")
 	}()
-	db.Init(config.DataDir, backend.SelfID())
 	httpserver, _, err := server.StartHTTPServer(backend, config.Http)
 	if err != nil {
 		return err
