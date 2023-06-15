@@ -94,13 +94,13 @@ var actions = map[string]func(b *api.Backend, p Getter) map[string]any{
 		if session == nil {
 			return Failed("internal error")
 		}
-		for _, event := range session.Events {
+		for index, event := range session.Events {
 			data, err := json.Marshal(event)
 			if err != nil {
 				return Failed("internal error")
 			}
 			hash := sha256.Sum256(data)
-			event.Hash = hex.EncodeToString(hash[:])
+			session.Events[index].Hash = hex.EncodeToString(hash[:])
 		}
 		return OK(session)
 	},
