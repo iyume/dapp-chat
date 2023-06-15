@@ -14,6 +14,12 @@
           >
             同步至 IPFS
           </button>
+          <button
+            class="btn btn-sm btn-secondary"
+            @click="p2pStage = 'config_storage_provider'"
+          >
+            Storage Provider
+          </button>
           <div class="w-full"></div>
           <!-- TODO: add tooltip on ID -->
           <!-- See also: https://github.com/saadeghi/daisyui/issues/1899 -->
@@ -117,6 +123,9 @@
           ></AddBackend>
           <div v-else-if="p2pStage == 'add_friend'"></div>
           <SyncIPFS v-else-if="p2pStage == 'sync_ipfs'"></SyncIPFS>
+          <ConfigStorageProvider
+            v-else-if="p2pStage == 'config_storage_provider'"
+          ></ConfigStorageProvider>
         </div>
         <Messager v-else-if="chattingNodeID != ''" :node-id="chattingNodeID" />
         <div v-else>选择节点以发送消息</div>
@@ -130,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed } from "vue";
 
 import Messager from "./Messager.vue";
 import MiniPlusIcon from "./icons/MiniPlusIcon.vue";
@@ -138,6 +147,7 @@ import BackendSelector from "./BackendSelector.vue";
 import AddBackend from "./AddBackend.vue";
 import ArrowLeftIcon from "./icons/ArrowLeftIcon.vue";
 import SyncIPFS from "./SyncIPFS.vue";
+import ConfigStorageProvider from "./ConfigStorageProvider.vue";
 
 import type { IPeerInfo } from "@/interfaces";
 import {

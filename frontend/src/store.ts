@@ -5,9 +5,9 @@ import type { IFriendInfo, IPeerInfo, IP2PSession } from "./interfaces";
 import { api } from "./api";
 
 export const currentPage = ref<"main" | "other">("main");
-export const p2pStage = ref<"add_backend" | "add_friend" | "sync_ipfs" | null>(
-  null
-);
+export const p2pStage = ref<
+  "add_backend" | "add_friend" | "sync_ipfs" | "config_storage_provider" | null
+>(null);
 export const chattingNodeID = ref("");
 
 export const selfID = ref("");
@@ -58,6 +58,37 @@ export async function setBackend(addr: string) {
   _currentBackend.value = addr;
   chattingNodeID.value = "";
   await resetBackendStores();
+}
+
+interface StorageProviders {
+  IPFS: {
+    Gateway: string;
+  };
+}
+
+function newStorageProviders() {
+  return { IPFS: { Gateway: "" } };
+}
+
+const storageProviders = useLocalStorage<{
+  [nodeID: string]: StorageProviders;
+}>("storage_providers", {});
+
+export function setIPFSGateway(nodeID: string, gateway: string) {
+  var providers = storageProviders.value[nodeID];
+  if (providers == undefined) {
+    providers = newStorageProviders();
+  }
+  providers.IPFS.Gateway = gateway;
+  storageProviders.value[nodeID] = providers;
+}
+
+export function getIPFSGateway(nodeID: string): string {
+  var providers = storageProviders.value[nodeID];
+  if (providers == undefined) {
+    providers = newStorageProviders();
+  }
+  return providers.IPFS.Gateway;
 }
 
 export enum FriendStatus {
