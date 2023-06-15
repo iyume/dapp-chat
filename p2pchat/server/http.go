@@ -152,7 +152,7 @@ func (srv httpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	// call action
 	action := strings.TrimPrefix(r.URL.Path, "/")
-	log.Println("接收 API 调用:", action)
+	log.Println("接收 API 调用:", action, *getter)
 	resp := srv.caller.Call(action, getter)
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
