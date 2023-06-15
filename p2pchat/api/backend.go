@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/p2p/nat"
 	"github.com/ethereum/go-ethereum/p2p/netutil"
 	"github.com/iyume/dapp-chat/p2pchat/db"
+	"github.com/iyume/dapp-chat/p2pchat/ipfsutils"
 	"github.com/iyume/dapp-chat/p2pchat/types"
 	"github.com/iyume/dapp-chat/p2pchat/utils"
 )
@@ -174,4 +175,8 @@ func (b *Backend) Encrypt(pubkey *ecdsa.PublicKey, plaintext []byte) ([]byte, er
 
 func (b *Backend) Decrypt(pubkey *ecdsa.PublicKey, ciphertext []byte) ([]byte, error) {
 	return utils.Decrypt(b.key, pubkey, ciphertext)
+}
+
+func (b *Backend) Verify(pubkey *ecdsa.PublicKey, gatewaySelf, gatewayTarget string) ([]string, error) {
+	return ipfsutils.Verify(b.key, pubkey, gatewaySelf, gatewayTarget)
 }

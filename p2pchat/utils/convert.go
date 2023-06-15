@@ -38,3 +38,10 @@ func ParseHexNodeID(in string) ([32]byte, error) {
 	copy(id[:], b)
 	return id, nil
 }
+
+func ToHttpAddress(addr string) string {
+	if !(strings.HasPrefix(addr, "http://") || strings.HasPrefix(addr, "https://")) {
+		addr = "http://" + addr
+	}
+	return addr
+}

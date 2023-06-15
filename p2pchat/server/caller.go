@@ -248,11 +248,32 @@ var actions = map[string]func(b *api.Backend, p Getter) map[string]any{
 
 		return OK(publishResp)
 	},
-	"verify_ipfs": func(b *api.Backend, p Getter) map[string]any {
-		if miss := p.Require("ipfs_addr"); miss != "" {
+	"ipfs_verify_session": func(b *api.Backend, p Getter) map[string]any {
+		if miss := p.Require("self_gateway", "target_gateway", "node_id"); miss != "" {
 			return Failed(fmt.Sprintf("missing parameter '%s'", miss))
 		}
-		return OK(nil)
+		hexNodeID := p.GetString("node_id")
+		nodeID, err := utils.ParseNodeID(hexNodeID)
+		if err != nil {
+			return Failed("parameter invalid")
+		}
+		gatewaySelf := p.GetString("self_gateway")
+		gatewayTarget := p.GetString("target_gateway")
+		gatewaySelf = utils.ToHttpAddress(gatewaySelf)
+		gatewayTarget = utils.ToHttpAddress(gatewayTarget)
+		pubkeyBytes := db.GetP2PSession(b.SessionID(nodeID)).Pubkey
+		if pubkeyBytes == nil {
+			return Failed("cannot find public key, probably never connected")
+		}
+		pubkey, err := crypto.UnmarshalPubkey(pubkeyBytes)
+		if err != nil {
+			return Failed("internal error")
+		}
+		hashes, err := b.Verify(pubkey, gatewaySelf, gatewayTarget)
+		if err != nil {
+			return Failed(err.Error())
+		}
+		return OK(hashes)
 	},
 }
 

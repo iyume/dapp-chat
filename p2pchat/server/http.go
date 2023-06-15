@@ -120,6 +120,7 @@ func StartHTTPServer(backend *api.Backend, config HTTPConfig) (*http.Server, net
 }
 
 func (srv httpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Println("handle http request", *r)
 	getter := &paramsGetter{}
 	switch r.Method {
 	case http.MethodPost:
