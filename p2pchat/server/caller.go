@@ -21,8 +21,15 @@ import (
 
 const (
 	defaultIPFSDataDir = "/.p2pchat"
-	ipfsSelfIDFile     = "self_id"
+
+	// /.p2pchat/self_id
+	ipfsSelfIDFile = "self_id"
+
+	// /.p2pchat/p2p_sessions
 	ipfsP2PSessionsDir = "p2p_sessions"
+
+	// /.p2pchat/p2p_sessions/xxx/index
+	ipfsP2PSessionIndex = "index"
 )
 
 type Caller interface {
@@ -194,6 +201,9 @@ var actions = map[string]func(b *api.Backend, p Getter) map[string]any{
 			if err := sh.FilesMkdir(context.Background(), sessionDir); err != nil {
 				return Failed(err.Error())
 			}
+			// Since IPFS not yet supports list directory in gateway. Here indexes all hashes
+			// See: https://github.com/ipfs/kubo/issues/7552
+			indexBuf := &bytes.Buffer{}
 			for _, msgHash := range msgHashes {
 				cid, err := sh.Add(bytes.NewReader(outBoundMessages[msgHash]))
 				if err != nil {
@@ -205,6 +215,17 @@ var actions = map[string]func(b *api.Backend, p Getter) map[string]any{
 					return Failed(err.Error())
 				}
 				log.Printf("mapped /ipfs/%s to MFS %s\n", cid, msgFile)
+				indexBuf.WriteString(msgHash)
+				indexBuf.WriteByte('\n')
+			}
+			cid, err := sh.Add(indexBuf)
+			if err != nil {
+				return Failed(err.Error())
+			}
+			if err := sh.FilesCp(context.Background(),
+				"/ipfs/"+cid, path.Join(sessionDir, ipfsP2PSessionIndex),
+			); err != nil {
+				return Failed(err.Error())
 			}
 		}
 		return OK(nil)
