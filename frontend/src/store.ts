@@ -65,29 +65,32 @@ interface StorageProviders {
   IPFS: {
     Gateway: string;
   };
+  SelfID: string;
 }
 
-function newStorageProviders() {
-  return { IPFS: { Gateway: "" } };
+function newStorageProviders(selfID: string): StorageProviders {
+  return { IPFS: { Gateway: "" }, SelfID: selfID };
 }
 
-const storageProviders = useLocalStorage<{
+const storageProviders_ = useLocalStorage<{
   [nodeID: string]: StorageProviders;
 }>("storage_providers", {});
 
+export const storageProviders = computed(() => storageProviders_.value);
+
 export function setIPFSGateway(nodeID: string, gateway: string) {
-  var providers = storageProviders.value[nodeID];
+  var providers = storageProviders_.value[nodeID];
   if (providers == undefined) {
-    providers = newStorageProviders();
+    providers = newStorageProviders(nodeID);
   }
   providers.IPFS.Gateway = gateway;
-  storageProviders.value[nodeID] = providers;
+  storageProviders_.value[nodeID] = providers;
 }
 
 export function getIPFSGateway(nodeID: string): string {
-  var providers = storageProviders.value[nodeID];
+  var providers = storageProviders_.value[nodeID];
   if (providers == undefined) {
-    providers = newStorageProviders();
+    providers = newStorageProviders(nodeID);
   }
   return providers.IPFS.Gateway;
 }
@@ -125,8 +128,8 @@ export const friendsPeerInfo = computed(() => {
 export async function actionGetSelfID() {
   try {
     const resp = await api.getSelfID();
-    if (resp.status != 200 || resp.data.retcode != 0) {
-      throw "request failed";
+    if (resp.data.retcode != 0) {
+      throw `request failed: ${resp.data.reason}`;
     }
     selfID.value = resp.data.data;
   } catch (error) {
@@ -137,8 +140,8 @@ export async function actionGetSelfID() {
 export async function actionGetFriends() {
   try {
     const resp = await api.getFriendList();
-    if (resp.status != 200 || resp.data.retcode != 0) {
-      throw "request failed";
+    if (resp.data.retcode != 0) {
+      throw `request failed: ${resp.data.reason}`;
     }
     const res: typeof friendsInfo.value = {};
     for (let p of resp.data.data) {
@@ -153,8 +156,8 @@ export async function actionGetFriends() {
 export async function actionGetPeersInfo() {
   try {
     const resp = await api.getPeersInfo();
-    if (resp.status != 200 || resp.data.retcode != 0) {
-      throw "request failed";
+    if (resp.data.retcode != 0) {
+      throw `request failed: ${resp.data.reason}`;
     }
     const res: typeof peersInfo.value = {};
     for (let p of resp.data.data) {
@@ -169,9 +172,14 @@ export async function actionGetPeersInfo() {
 export async function actionGetP2PSession(nodeID: string) {
   try {
     const resp = await api.getP2PSession(nodeID);
-    if (resp.status != 200 || resp.data.retcode != 0) {
-      throw "request failed";
+    if (resp.data.retcode != 0) {
+      throw `request failed: ${resp.data.reason}`;
     }
+    const hashes: string[] = [];
+    for (let e of resp.data.data.events) {
+      hashes.push(e.hash);
+    }
+    console.log("actionGetP2PSession hashes:", hashes);
     p2pSessions.value[nodeID] = resp.data.data;
   } catch (error) {
     console.error(error);
@@ -181,10 +189,29 @@ export async function actionGetP2PSession(nodeID: string) {
 export async function actionSendP2PMessage(nodeID: string, message: string) {
   try {
     const resp = await api.sendP2PMessage(nodeID, message);
-    if (resp.status != 200 || resp.data.retcode != 0) {
-      throw "request failed";
+    if (resp.data.retcode != 0) {
+      throw `request failed: ${resp.data.reason}`;
     }
     actionGetP2PSession(nodeID);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export async function actionVerifySession(
+  selfGateway: string,
+  targetGateway: string,
+  nodeID: string
+) {
+  try {
+    const resp = await api.verifyIPFS(selfGateway, targetGateway, nodeID);
+    if (resp.data.retcode != 0) {
+      throw `request failed: ${resp.data.reason}`;
+    }
+    console.log("actionVerifySession", resp);
+    for (let hash of resp.data.data) {
+      verifiedMessages.value.add(hash);
+    }
   } catch (error) {
     console.error(error);
   }

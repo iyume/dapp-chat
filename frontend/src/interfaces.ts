@@ -51,3 +51,5 @@ export interface PublishedIPFS {
   name: string;
   value: string;
 }
+
+export type VerifiedMessages = string[];

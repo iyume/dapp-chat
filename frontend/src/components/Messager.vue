@@ -18,6 +18,10 @@
         >
           {{ connBadgeTable[status].label }}
         </div>
+        <div class="w-full h-4"></div>
+        <button class="btn btn-sm btn-secondary" @click="doVerifyIPFS">
+          进行 IPFS 验证
+        </button>
         <div class="divider"></div>
         <template v-for="e in selectedSession.events">
           <div
@@ -34,7 +38,7 @@
               {{ utils.extractPlainText(e.message) }}
             </div>
             <div
-              v-if="e.hash in verifiedMessages"
+              v-if="verifiedMessages.has(e.hash)"
               class="chat-footer text-xs font-medium text-green-600"
             >
               √ Verified
@@ -90,6 +94,8 @@ import {
   FriendStatus,
   peersInfo,
   verifiedMessages,
+  storageProviders,
+  actionVerifySession,
 } from "@/store";
 import utils from "@/utils";
 
@@ -154,5 +160,18 @@ function sendMessageByEnter(e: KeyboardEvent) {
     e.preventDefault();
     sendMessage();
   }
+}
+
+function doVerifyIPFS() {
+  if (!(props.nodeId in storageProviders.value)) {
+    return;
+  }
+  const selfGateway = storageProviders.value[selfID.value].IPFS.Gateway;
+  const targetGateway = storageProviders.value[props.nodeId].IPFS.Gateway;
+  if (!selfGateway || !targetGateway) {
+    console.error("missing gateway configure");
+    return;
+  }
+  actionVerifySession(selfGateway, targetGateway, props.nodeId);
 }
 </script>

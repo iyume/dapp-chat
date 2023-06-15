@@ -7,6 +7,7 @@ import type {
   IPeerInfo,
   IP2PSession,
   PublishedIPFS,
+  VerifiedMessages,
 } from "./interfaces";
 import { currentBackend, backends } from "./store";
 
@@ -54,5 +55,15 @@ export const api = {
       params: { ipfs_addr, mfs_data_dir, key },
       timeout: timeout,
     });
+  },
+  async verifyIPFS(
+    self_gateway: string,
+    target_gateway: string,
+    node_id: string
+  ) {
+    return p2pApiRequest.value.get<IResp<VerifiedMessages>>(
+      "ipfs_verify_session",
+      { params: { self_gateway, target_gateway, node_id } }
+    );
   },
 };

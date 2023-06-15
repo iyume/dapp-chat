@@ -1,8 +1,12 @@
 <template>
-  <div class="h-4"></div>
+  <div class="h-2"></div>
   <div class="tabs tabs-boxed">
     <a class="tab tab-active">IPFS</a>
     <a class="tab">Other</a>
+  </div>
+  <div class="py-2 text-red-500">
+    <p>Self ID: {{ selfID }}</p>
+    <p>如果需要为自身添加 Gateway，请从上面复制 Self ID</p>
   </div>
   <div class="flex flex-wrap gap-4">
     <div class="form-control w-full max-w-xs min-w-max">
@@ -34,6 +38,26 @@
       <div class="h-4"></div>
       <div class="btn btn-primary" @click="action">添加</div>
     </div>
+    <div class="overflow-x-auto">
+      <span>已有数据</span>
+      <table class="table">
+        <!-- head -->
+        <thead>
+          <tr>
+            <th></th>
+            <th>Node ID</th>
+            <th>IPFS Gateway</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(providers, _, b) in storageProviders">
+            <th>{{ b }}</th>
+            <td>{{ providers.SelfID }}</td>
+            <td>{{ providers.IPFS.Gateway }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
@@ -42,7 +66,12 @@ import { ref } from "vue";
 
 import ErrorIcon from "./icons/ErrorIcon.vue";
 
-import { chattingNodeID, setIPFSGateway } from "@/store";
+import {
+  chattingNodeID,
+  setIPFSGateway,
+  selfID,
+  storageProviders,
+} from "@/store";
 
 const props = defineProps({
   nodeID: {
