@@ -1,6 +1,7 @@
 export interface IResp<T> {
   retcode: number;
   data: T;
+  reason?: string;
 }
 
 export interface IPeerInfo {

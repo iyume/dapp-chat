@@ -64,6 +64,7 @@ const props = defineProps({
   exit: Function as PropType<() => void>,
 });
 
+// FIXME: not context
 const errors = ref<string[]>([]);
 
 const addr = ref("");

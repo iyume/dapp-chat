@@ -38,4 +38,9 @@ export const api = {
       params: { node_id, message },
     });
   },
+  async syncIPFS(ipfs_addr: string, mfs_data_dir?: string) {
+    return p2pApiRequest.value.get<IResp<null>>("upload_ipfs", {
+      params: { ipfs_addr, mfs_data_dir },
+    });
+  },
 };

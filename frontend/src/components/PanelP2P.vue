@@ -8,6 +8,12 @@
       <div class="px-4">
         <div class="flex flex-wrap gap-2">
           <BackendSelector />
+          <button
+            class="btn btn-sm btn-secondary"
+            @click="p2pStage = 'sync_ipfs'"
+          >
+            同步至 IPFS
+          </button>
           <div class="w-full"></div>
           <!-- TODO: add tooltip on ID -->
           <!-- See also: https://github.com/saadeghi/daisyui/issues/1899 -->
@@ -110,6 +116,7 @@
             :exit="resetStage"
           ></AddBackend>
           <div v-else-if="p2pStage == 'add_friend'"></div>
+          <SyncIPFS v-else-if="p2pStage == 'sync_ipfs'"></SyncIPFS>
         </div>
         <Messager v-else-if="chattingNodeID != ''" :node-id="chattingNodeID" />
         <div v-else>选择节点以发送消息</div>
@@ -130,6 +137,7 @@ import MiniPlusIcon from "./icons/MiniPlusIcon.vue";
 import BackendSelector from "./BackendSelector.vue";
 import AddBackend from "./AddBackend.vue";
 import ArrowLeftIcon from "./icons/ArrowLeftIcon.vue";
+import SyncIPFS from "./SyncIPFS.vue";
 
 import type { IPeerInfo } from "@/interfaces";
 import {
