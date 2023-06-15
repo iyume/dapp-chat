@@ -12,10 +12,11 @@ const (
 
 // 基础事件类型
 type Event struct {
-	Time       string `json:"time"`        // RFC3339Nano format
-	TimeISO    string `json:"time_iso"`    // RFC3339 format
-	Type       string `json:"type"`        // message or other ob12 type
-	DetailType string `json:"detail_type"` // p2p or channel
+	Time       string `json:"time"`           // RFC3339Nano format
+	TimeISO    string `json:"time_iso"`       // RFC3339 format
+	Type       string `json:"type"`           // message or other ob12 type
+	DetailType string `json:"detail_type"`    // p2p or channel
+	Hash       string `json:"hash,omitempty"` // optional hash
 }
 
 func (e *Event) Name() string {

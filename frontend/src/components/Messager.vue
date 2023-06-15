@@ -26,11 +26,21 @@
           >
             <div class="chat-header">
               {{ e.user_id == selfID ? "me" : userRemark }}
-              <!-- FIXME: implement utils.sentTimeChat -->
-              <time class="text-xs opacity-50">{{ e.time }}</time>
+              <time class="text-xs opacity-50">
+                {{ utils.sentTimeChat(e.time_iso) }}
+              </time>
             </div>
             <div class="chat-bubble">
               {{ utils.extractPlainText(e.message) }}
+            </div>
+            <div
+              v-if="e.hash in verifiedMessages"
+              class="chat-footer text-xs font-medium text-green-600"
+            >
+              √ Verified
+            </div>
+            <div v-else class="chat-footer text-xs font-medium text-red-600">
+              × Not Verified
             </div>
           </div>
         </template>
@@ -79,6 +89,7 @@ import {
   friendsPeerInfo,
   FriendStatus,
   peersInfo,
+  verifiedMessages,
 } from "@/store";
 import utils from "@/utils";
 
@@ -92,9 +103,10 @@ const selectedSession = computed<IP2PSession>(() => {
     // no chat selected, should not be render
     return { events: [] };
   }
-  if (!(id in p2pSessions.value)) {
+  if (!(props.nodeId in p2pSessions.value)) {
     // task done and responsively updates
-    actionGetP2PSession(id);
+    actionGetP2PSession(props.nodeId);
+    return { events: [] };
   }
   return p2pSessions.value[id];
 });

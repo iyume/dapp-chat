@@ -93,9 +93,16 @@ var actions = map[string]func(b *api.Backend, p Getter) map[string]any{
 		session := db.GetP2PSession(b.SessionID(nodeID))
 		if session == nil {
 			return Failed("internal error")
-		} else {
-			return OK(session)
 		}
+		for _, event := range session.Events {
+			data, err := json.Marshal(event)
+			if err != nil {
+				return Failed("internal error")
+			}
+			hash := sha256.Sum256(data)
+			event.Hash = hex.EncodeToString(hash[:])
+		}
+		return OK(session)
 	},
 	"send_p2p_message": func(b *api.Backend, p Getter) map[string]any {
 		if miss := p.Require("node_id", "message"); miss != "" {

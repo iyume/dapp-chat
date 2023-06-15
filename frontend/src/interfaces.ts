@@ -29,8 +29,10 @@ export interface ITextSegment {
 
 interface IEvent {
   time: string; // RFC3339Nano
+  time_iso: string;
   type: string;
   detail_type: string;
+  hash: string;
 }
 
 interface IMessageEvent extends IEvent {

@@ -16,7 +16,8 @@ export const peersInfo = ref<{ [nodeID: string]: IPeerInfo }>({});
 /**
  * Map node ID to p2p session ref. This is shallow ref and it should be entirely updated.
  */
-export var p2pSessions = ref<{ [nodeID: string]: IP2PSession }>({});
+export const p2pSessions = ref<{ [nodeID: string]: IP2PSession }>({});
+export const verifiedMessages = ref<Set<string>>(new Set());
 
 const _currentBackend = useLocalStorage("currentBackend", "");
 export const currentBackend = computed(() => _currentBackend.value);
