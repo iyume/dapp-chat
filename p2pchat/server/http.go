@@ -110,8 +110,8 @@ func StartHTTPServer(backend *api.Backend, config HTTPConfig) (*http.Server, net
 	handler = NewHTTPStack(handler, token)
 	srv := &http.Server{
 		Handler:      handler,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  20 * time.Second,
+		WriteTimeout: 20 * time.Second,
 	}
 	log.Println("Started http server at", "http://"+listener.Addr().String(),
 		"with token", token)

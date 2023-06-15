@@ -137,6 +137,11 @@ var actions = map[string]func(b *api.Backend, p Getter) map[string]any{
 		} else if !strings.HasPrefix(mfsDataDir, "/") {
 			return Failed("parameter 'mfs_data_dir' must be startswith '/'")
 		}
+		key := p.GetString("key")
+		if key == "" {
+			key = "self"
+		}
+
 		sessions := db.GetP2PSessions()
 		// message hash to encrypted message object
 		// NOTE: json cannot marshal map[[32]byte]xxx (needs comparable), so use hex string
@@ -227,6 +232,25 @@ var actions = map[string]func(b *api.Backend, p Getter) map[string]any{
 			); err != nil {
 				return Failed(err.Error())
 			}
+		}
+
+		// publish to IPNS
+		log.Println("publishing with key", key)
+		stat, err := sh.FilesStat(context.Background(), mfsDataDir)
+		if err != nil {
+			return Failed(err.Error())
+		}
+		publishResp, err := sh.PublishWithDetails(stat.Hash, key, 0, 0, true)
+		if err != nil {
+			return Failed(err.Error())
+		}
+		log.Println("published", *publishResp)
+
+		return OK(publishResp)
+	},
+	"verify_ipfs": func(b *api.Backend, p Getter) map[string]any {
+		if miss := p.Require("ipfs_addr"); miss != "" {
+			return Failed(fmt.Sprintf("missing parameter '%s'", miss))
 		}
 		return OK(nil)
 	},
