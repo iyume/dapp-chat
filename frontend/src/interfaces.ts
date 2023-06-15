@@ -44,3 +44,8 @@ export interface IP2PMessageEvent extends IMessageEvent {
 export interface IP2PSession {
   events: IP2PMessageEvent[];
 }
+
+export interface PublishedIPFS {
+  name: string;
+  value: string;
+}

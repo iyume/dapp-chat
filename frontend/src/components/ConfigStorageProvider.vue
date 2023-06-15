@@ -1,4 +1,5 @@
 <template>
+  <div class="h-4"></div>
   <div class="tabs tabs-boxed">
     <a class="tab tab-active">IPFS</a>
     <a class="tab">Other</a>
@@ -20,12 +21,12 @@
       <input
         v-model="gateway"
         type="text"
-        placeholder="hostname:port"
+        placeholder="127.0.0.1:port/ipns/Qmxxxx"
         class="input input-bordered input-primary w-full max-w-xs"
       />
       <div v-for="e in errors" class="max-w-xs">
         <div class="h-4"></div>
-        <div class="alert alert-error">
+        <div class="alert alert-error break-all">
           <ErrorIcon />
           <span>错误: {{ e }}</span>
         </div>
@@ -38,6 +39,8 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+
+import ErrorIcon from "./icons/ErrorIcon.vue";
 
 import { chattingNodeID, setIPFSGateway } from "@/store";
 

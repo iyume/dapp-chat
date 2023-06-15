@@ -21,14 +21,14 @@
       />
       <div v-if="addr in backends">
         <div class="h-4"></div>
-        <div class="alert alert-warning text-sm">
+        <div class="alert alert-warning break-all">
           <WarningIcon />
           <span>警告: 将覆盖已有的 {{ backends[addr] }}</span>
         </div>
       </div>
       <div v-for="e in errors">
         <div class="h-4"></div>
-        <div class="alert alert-error">
+        <div class="alert alert-error break-all">
           <ErrorIcon />
           <span>错误: {{ e }}</span>
         </div>

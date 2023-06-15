@@ -1,7 +1,13 @@
 import axios from "axios";
 import { computed } from "vue";
 
-import type { IResp, IFriendInfo, IPeerInfo, IP2PSession } from "./interfaces";
+import type {
+  IResp,
+  IFriendInfo,
+  IPeerInfo,
+  IP2PSession,
+  PublishedIPFS,
+} from "./interfaces";
 import { currentBackend, backends } from "./store";
 
 const p2pApiRequest = computed(() =>
@@ -38,9 +44,15 @@ export const api = {
       params: { node_id, message },
     });
   },
-  async syncIPFS(ipfs_addr: string, mfs_data_dir?: string) {
-    return p2pApiRequest.value.get<IResp<null>>("upload_ipfs", {
-      params: { ipfs_addr, mfs_data_dir },
+  async syncIPFS(
+    ipfs_addr: string,
+    mfs_data_dir?: string,
+    key?: string,
+    timeout?: number
+  ) {
+    return p2pApiRequest.value.get<IResp<PublishedIPFS>>("upload_ipfs", {
+      params: { ipfs_addr, mfs_data_dir, key },
+      timeout: timeout,
     });
   },
 };
